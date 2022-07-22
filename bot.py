@@ -12,7 +12,7 @@ client = commands.Bot(command_prefix="!")
 @client.event
 async def on_ready():
     "This event will be triggered when the client is ready to use."
-    print(f"Discord client logged in as {client}")
+    print(f"Discord client logged in as {client.user.name}")
 
 @client.event
 async def on_message(message: discord.Message):
