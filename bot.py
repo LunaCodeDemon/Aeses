@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
 from http.client import HTTPException
 import discord
 from textfilter import check_message
@@ -22,12 +23,8 @@ async def on_message(message: discord.Message):
     if check_message(message):
         try:
             message.delete()
-        except discord.Forbidden:
-            print("Couldn't delete filtered message, missing permissions.")
-        except discord.NotFound:
-            print("Couldn't find filtered message, is there another filter bot?")
-        except HTTPException:
-            print("Deletion of filtered message failed due to API Error")
+        except (discord.Forbidden, discord.NotFound, HTTPException):
+            logging.exception("Deletion of filtered message failed.")
 
 @client.event
 async def on_message_edit(old: discord.Message, updated: discord.Message):
@@ -39,9 +36,5 @@ async def on_message_edit(old: discord.Message, updated: discord.Message):
     if check_message(updated):
         try:
             updated.delete()
-        except discord.Forbidden:
-            print("Couldn't delete filtered message, missing permissions.")
-        except discord.NotFound:
-            print("Couldn't find filtered message, is there another filter bot?")
-        except HTTPException:
-            print("Deletion of filtered message failed due to API Error")
+        except (discord.Forbidden, discord.NotFound, HTTPException):
+            logging.exception("Deletion of filtered message failed.")
