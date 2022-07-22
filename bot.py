@@ -4,9 +4,10 @@
 import logging
 from http.client import HTTPException
 import discord
+from discord.ext import commands
 from textfilter import check_message
 
-client = discord.Client()
+client = commands.Bot(command_prefix="!")
 
 @client.event
 async def on_ready():
@@ -25,6 +26,10 @@ async def on_message(message: discord.Message):
             message.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
             logging.exception("Deletion of filtered message failed.")
+        
+        return
+
+    await client.process_commands(message)
 
 @client.event
 async def on_message_edit(old: discord.Message, updated: discord.Message):
@@ -38,3 +43,9 @@ async def on_message_edit(old: discord.Message, updated: discord.Message):
             updated.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
             logging.exception("Deletion of filtered message failed.")
+
+
+@client.command()
+async def test(ctx: commands.Context):
+    "sends hello world back"
+    await ctx.send("Hello World")
