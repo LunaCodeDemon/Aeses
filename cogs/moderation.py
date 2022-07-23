@@ -13,7 +13,7 @@ class Moderation(commands.Cog):
         if member:
             await ctx.send(f"{member.mention} has been kicked.")
         else:
-            await ctx.send_help("warn")
+            await ctx.send_help("kick")
 
 def setup(client: commands.Bot):
     "Setup function for the moderation extention."
