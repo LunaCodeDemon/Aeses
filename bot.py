@@ -44,8 +44,8 @@ async def on_message_edit(old: discord.Message, updated: discord.Message):
         except (discord.Forbidden, discord.NotFound, HTTPException):
             logging.exception("Deletion of filtered message failed.")
 
-
-@client.command()
-async def test(ctx: commands.Context):
-    "sends hello world back"
-    await ctx.send("Hello World")
+EXTENSION_FOLDER = 'cogs'
+for file in os.listdir(EXTENSION_FOLDER):
+    if file.endswith('.py'):
+        module_path = f"{EXTENSION_FOLDER}.{os.path.splitext(file)[0]}"
+        client.load_extension(module_path)
