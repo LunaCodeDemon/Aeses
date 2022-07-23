@@ -1,3 +1,4 @@
+"Cog for moderation commands and listeners"
 import discord
 from discord.ext import commands
 
@@ -5,7 +6,7 @@ class Moderation(commands.Cog):
     "Moderation command group"
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
-    
+
     @commands.command()
     async def kick(self, ctx: commands.Context, *, member: discord.Member = None):
         "This command kicks a member."

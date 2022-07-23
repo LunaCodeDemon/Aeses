@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"Entrypoint of project"
 
 import os
 from bot import client

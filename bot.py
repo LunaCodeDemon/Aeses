@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"Bot client module, contains configuration of bot and simple listeners."
 
 import logging
 from http.client import HTTPException
+import os
 import discord
 from discord.ext import commands
 from textfilter import check_message
@@ -26,13 +26,13 @@ async def on_message(message: discord.Message):
             message.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
             logging.exception("Deletion of filtered message failed.")
-        
+
         return
 
     await client.process_commands(message)
 
 @client.event
-async def on_message_edit(old: discord.Message, updated: discord.Message):
+async def on_message_edit(_: discord.Message, updated: discord.Message):
     "This will be triggered whenever a user edits a message."
     if updated.author == client.user:
         return

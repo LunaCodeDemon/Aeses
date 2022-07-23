@@ -1,8 +1,9 @@
+"Core command group (commands ex. info, help)"
 import discord
 from discord.ext import commands
 
 class HelpCommand(commands.MinimalHelpCommand):
-    pass
+    "Help Command for this bot, might add some custom methods."
 
 class Core(commands.Cog):
     "Basic functionalities of the bot, like information."
@@ -10,8 +11,7 @@ class Core(commands.Cog):
         self.client = client
         client.help_command = HelpCommand()
         client.help_command.cog = self
-        
-    
+
     @commands.command()
     async def info(self, ctx: commands.Context):
         "This command shows information about the bot."
@@ -23,4 +23,5 @@ class Core(commands.Cog):
         await ctx.send(embed=embed_message)
 
 def setup(client: commands.Bot):
+    "Setup function for 'info' cog"
     client.add_cog(Core(client))
