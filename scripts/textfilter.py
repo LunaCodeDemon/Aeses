@@ -1,3 +1,5 @@
+"This module contains functions to filter certain elements"
+
 import re
 import emoji
 from discord import Message, Member
