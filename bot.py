@@ -5,9 +5,9 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
-from textfilter import check_message
+from scripts.textfilter import check_message, check_nickname
 
-client = commands.Bot(command_prefix="!")
+client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
@@ -43,6 +43,16 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
             updated.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
             logging.exception("Deletion of filtered message failed.")
+
+@client.event
+async def on_member_update(_: discord.Member, after: discord.Member):
+    "React on updates of the member"
+    if check_nickname(after):
+        try:
+            await after.edit(nick=None)
+            await after.send("Your nickname got removed.")
+        except (discord.Forbidden, HTTPException) as err:
+            logging.exception(err)
 
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):

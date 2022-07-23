@@ -24,6 +24,4 @@ def check_nickname(member: Member) -> bool:
     "Check a name for potential threats."
     if member.nick is not None and check_for_emoji(member.nick):
         return True
-    if check_for_emoji(member.name):
-        return True
     return False
