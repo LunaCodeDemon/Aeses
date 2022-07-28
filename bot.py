@@ -5,7 +5,7 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
-from scripts.textfilter import check_message, check_nickname
+from scripts.textfilter import check_nickname, check_text
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
@@ -21,7 +21,7 @@ async def on_message(message: discord.Message):
         return
 
     # filter
-    if check_message(message):
+    if check_text(message.content):
         try:
             message.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
@@ -38,7 +38,7 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
         return
 
     # filter
-    if check_message(updated):
+    if check_text(updated.content):
         try:
             updated.delete()
         except (discord.Forbidden, discord.NotFound, HTTPException):
