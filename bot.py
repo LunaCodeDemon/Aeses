@@ -56,6 +56,6 @@ async def on_member_update(_: discord.Member, after: discord.Member):
 
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):
-    if file.endswith('.py'):
+    if file.endswith('.py') and file != "__init__.py":
         module_path = f"{EXTENSION_FOLDER}.{os.path.splitext(file)[0]}"
         client.load_extension(module_path)
