@@ -5,6 +5,20 @@ I will try to make Aeses powerful enough to be a standalone tool.
 ## Dependencies
 1. [python](https://www.python.org/)
 2. [discord.py](https://discordpy.readthedocs.io/en/stable/intro.html)
+3. emoji `pip install -U emoji`
+
+### Fast install dependencies
+To install the dependencies, install [python](https://www.python.org/) and then run this command inside the project folder.
+```
+pip install -U -r requirements.txt
+```
+## Commands
+It is recommended to use the `help` command to get infos on how to use commands.
+| Command | Description             |
+|---      | ---                     |
+| `!help` | Gives help for commands |
+| `!ban`  | Bans a guild member.    |
+| `!kick` | Kicks a guild member.   |
 
 ---
 
@@ -14,11 +28,12 @@ The aspects of moderation and spam protection are most important to me, but i am
 
 ### Moderation Goals
 - Fully integrated spam protection
-- Kick, Ban, Strike commands
+- Strike command
+- Logging for moderative actions
 
 ### Activity Enhancing Goals
 - Automatic messages in dead main channels.
-- Daily messages (questions, statements or images)
+- Daily messages (questions, steamdb sales, statements or images)
 - Giveaway functionality (picking people)
 
 ### Configuration Goals
