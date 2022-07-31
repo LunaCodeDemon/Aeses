@@ -1,4 +1,4 @@
-# Activity Enhancing Spam Erasing System
+# Aeses
 Aeses is focused on enhancing the Activity of a community and erasing possible spam.
 I will try to make Aeses powerful enough to be a standalone tool.
 
