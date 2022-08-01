@@ -1,7 +1,12 @@
 "Handles most sql actions"
+import os
 from sqlalchemy import create_engine, text
 
-engine = create_engine("sqlite:///:memory:", echo=True)
+DB_FILENAME = "/data.db"
+if os.environ.get('DEBUG').lower() in ['true', 'yes', 't', '1']:
+    DB_FILENAME = "/:memory:"
+
+engine = create_engine(f"sqlite://{DB_FILENAME}", echo=True)
 
 def create_table_logchannel():
     "Create a table for log channel"
