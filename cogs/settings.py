@@ -17,9 +17,11 @@ class Settings(commands.Cog):
             perms: Permissions = ctx.author.permissions_for(self)
             if perms.administrator:
                 insert_logchannel(ctx.guild.id, log_channel.id)
-                await ctx.send(config['dialog_logchannel']['response'].format(mention=log_channel.mention))
+                await ctx.send(config['dialog_logchannel']['response']
+                    .format(mention=log_channel.mention))
             else:
-                await ctx.send(config['dialog_logchannel']['on_missing_permission'].format(mention=log_channel.mention))
+                await ctx.send(config['dialog_logchannel']['on_missing_permission']
+                    .format(mention=log_channel.mention))
         else:
             await ctx.send_help("logchannel")
 
