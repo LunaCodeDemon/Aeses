@@ -1,6 +1,7 @@
 "This Cog lets server moderators change settings for the guild."
 from discord import TextChannel, Permissions
 from discord.ext import commands
+from iniloader import config
 
 from scripts.sqldata import insert_logchannel
 
@@ -16,9 +17,9 @@ class Settings(commands.Cog):
             perms: Permissions = ctx.author.permissions_for(self)
             if perms.administrator:
                 insert_logchannel(ctx.guild.id, log_channel.id)
-                await ctx.send(f"Set {log_channel.mention} as logging channel.")
+                await ctx.send(config['dialog_logchannel']['response'].format(mention=log_channel.mention))
             else:
-                await ctx.send("You do not have the correct permissions to do that.")
+                await ctx.send(config['dialog_logchannel']['on_missing_permission'].format(mention=log_channel.mention))
         else:
             await ctx.send_help("logchannel")
 
