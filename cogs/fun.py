@@ -1,6 +1,8 @@
 "Module for fun commands."
+from discord import Embed
 from discord.ext import commands
-from scripts import pokeapi
+from api import pokeapi
+from api import safebooru
 from iniloader import config
 
 class Fun(commands.Cog):
@@ -25,6 +27,27 @@ class Fun(commands.Cog):
                 .format(pokename=name))
             return
         await ctx.send(embed=pokemon_embed)
+
+    @commands.command()
+    async def booru(self, ctx: commands.Context, *args: tuple[str]):
+        "Get image from safebooru.org"
+        post: safebooru.SafebooruPost = None
+        try:
+            post = safebooru.random_post(list(args))
+        except safebooru.SafebooruConnectionError:
+            await ctx.send(config['dialog_booru']['on_fail'])
+            return
+
+        if not post:
+            return # should not happen since exception already exited.
+
+        embed = Embed()
+        embed.title = f"Post: {post.post_id}"
+        embed.description = f"You will find the post here: {post.post_url}"
+        embed.footer = "Post has comments" if post.has_comments else "Post has no comments."
+        embed.set_image(url=post.file_url)
+
+        await ctx.send(embed=embed)
 
 def setup(client: commands.Bot):
     "Setup function for Fun command collection."

@@ -13,6 +13,9 @@ class Settings(commands.Cog):
     @commands.command()
     async def logchannel(self, ctx: commands.Context, *, log_channel: TextChannel):
         "Sets a logging channel."
+        if ctx.channel is not TextChannel:
+            await ctx.send("This command can only be used in guild channels.")
+
         if log_channel:
             perms: Permissions = ctx.author.permissions_for(self)
             if perms.administrator:
