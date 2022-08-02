@@ -1,6 +1,7 @@
 "Module for fun commands."
 from discord.ext import commands
 from scripts import pokeapi
+from iniloader import config
 
 class Fun(commands.Cog):
     "This cog contains various fun commands"
@@ -14,7 +15,7 @@ class Fun(commands.Cog):
         # grab data from pokeapi
         pokemon_data: any
         if name:
-            pokemon_data = pokeapi.get_pokemon(name)
+            pokemon_data = pokeapi.get_pokemon(name.lower())
         else:
             pokemon_data = pokeapi.get_random_pokemon()
         # turn data into embed
