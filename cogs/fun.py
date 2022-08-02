@@ -1,6 +1,6 @@
 "Module for fun commands."
 from discord.ext import commands
-from scripts import pokeapi
+from api import pokeapi
 from iniloader import config
 
 class Fun(commands.Cog):
