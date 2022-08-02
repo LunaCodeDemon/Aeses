@@ -20,7 +20,8 @@ class Fun(commands.Cog):
         # turn data into embed
         pokemon_embed = pokeapi.gen_pokemon_embed(pokemon_data)
         if not pokemon_embed:
-            await ctx.send_help('pokemon') # failed
+            await ctx.send(config['dialog_pokemon']['on_fail']
+                .format(pokename=name))
             return
         await ctx.send(embed=pokemon_embed)
 
