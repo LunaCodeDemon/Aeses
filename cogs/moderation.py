@@ -11,8 +11,11 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(kick_member=True)
-    async def kick(self, ctx: commands.Context, *, member: discord.Member, reason: str):
+    async def kick(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
+        if ctx.channel is not discord.TextChannel:
+            await ctx.send("This command can only be used in guild channels.")
+
         if member:
             try:
                 await member.kick(reason=reason)
@@ -24,8 +27,11 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(ban_member=True)
-    async def ban(self, ctx: commands.Context, *, member: discord.Member, reason: str):
+    async def ban(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
+        if ctx.channel is not discord.TextChannel:
+            await ctx.send("This command can only be used in guild channels.")
+
         if member:
             try:
                 await member.ban(reason=reason)
