@@ -34,6 +34,7 @@ It is recommended to use the `help` command to get infos on how to use commands.
 | `!ban`        | Bans a guild member.      |
 | `!kick`       | Kicks a guild member.     |
 | `!logchannel` | Set log channel.          |
+| `!pokemon`    | Search for pokemon.       |
 
 ---
 
