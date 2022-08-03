@@ -54,6 +54,17 @@ async def on_member_update(_: discord.Member, after: discord.Member):
         except (discord.Forbidden, HTTPException) as err:
             logging.exception(err)
 
+@client.event
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    "Handles errors for every command."
+    # log exception
+    logging.exception(error)
+    if ctx.author == client.user:
+        return
+    # reply the invoker is missing permissions
+    if error is commands.errors.MissingPermissions:
+        await ctx.send("You do not have the correct permissions to use this command.")
+
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):
     if file.endswith('.py') and file != "__init__.py":
