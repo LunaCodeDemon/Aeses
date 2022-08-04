@@ -22,9 +22,9 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(kick_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx: commands.Context, member: discord.Member, reason: str):
-        "This command kicks a member."
+        "This command bans a member."
 
         try:
             await member.ban(reason=reason)
