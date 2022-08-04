@@ -3,7 +3,8 @@ import os
 from sqlalchemy import create_engine, text
 
 DB_FILENAME = "/data.db"
-if os.environ.get('DEBUG').lower() in ['true', 'yes', 't', '1']:
+DEBUG = os.environ.get('DEBUG') or "false"
+if DEBUG.lower() in ['true', 'yes', 't', '1']:
     DB_FILENAME = "/:memory:"
 
 engine = create_engine(f"sqlite://{DB_FILENAME}", echo=True)

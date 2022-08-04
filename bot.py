@@ -55,7 +55,6 @@ async def on_member_update(_: discord.Member, after: discord.Member):
             logging.exception(err)
 
 @client.event
-<<<<<<< HEAD
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     "Handles errors for every command."
     # log exception
@@ -65,32 +64,6 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     # reply the invoker is missing permissions
     if error is commands.errors.MissingPermissions:
         await ctx.send("You do not have the correct permissions to use this command.")
-=======
-async def on_member_ban(guild: discord.Guild, user: discord.User):
-    "React if a member got banned."
-    logging.info("%s got banned from guild %s.", user.name, guild.name)
-    # TODO send a message in logchannel if configured
-
-@client.event
-async def on_member_remove(member: discord.Member):
-    "React if a member got removed/kicked."
-    guild: discord.Guild = member.guild
-    kick_entry: discord.AuditLogEntry
-
-    try:
-        kick_entry = await guild.audit_logs(
-            user=member,
-            action=discord.AuditLogAction.kick
-            ).flatten()[0]
-    except discord.Forbidden:
-        logging.warning("wasn't able to log in guild %s with id %d", guild.name, guild.id)
-        return
-
-    if kick_entry:
-        logging.info("%s got kicked from guild %s.", member.name, guild.name)
-        # TODO send a message in logchannel if configured
-
->>>>>>> main
 
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):

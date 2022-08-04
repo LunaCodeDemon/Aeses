@@ -10,12 +10,10 @@ class Moderation(commands.Cog):
         self.client = client
 
     @commands.command()
-    @commands.has_permissions(kick_member=True)
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
-        if ctx.channel is not discord.TextChannel:
-            await ctx.send("This command can only be used in guild channels.")
-
         if member:
             try:
                 await member.kick(reason=reason)
@@ -26,11 +24,10 @@ class Moderation(commands.Cog):
             await ctx.send_help("kick")
 
     @commands.command()
-    @commands.has_permissions(ban_member=True)
+    @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def ban(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
-        if ctx.channel is not discord.TextChannel:
-            await ctx.send("This command can only be used in guild channels.")
 
         if member:
             try:
@@ -43,10 +40,9 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def nsfw(self, ctx: commands.Context, set_nsfw: bool = None):
         "Toggle the channel to nsfw mode."
-        if ctx.channel is not discord.TextChannel:
-            await ctx.send("This command can only be used in guild channels.")
         channel: discord.TextChannel = ctx.channel
 
         if set_nsfw is None:
