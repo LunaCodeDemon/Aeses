@@ -14,14 +14,11 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
-        if member:
-            try:
-                await member.kick(reason=reason)
-                await ctx.send(config['dialog_kick']['response'].format(mention=member.mention))
-            except HTTPException:
-                await ctx.send(config['dialog_kick']['on_fail'].format(mention=member.mention))
-        else:
-            await ctx.send_help("kick")
+        try:
+            await member.kick(reason=reason)
+            await ctx.send(config['dialog_kick']['response'].format(mention=member.mention))
+        except HTTPException:
+            await ctx.send(config['dialog_kick']['on_fail'].format(mention=member.mention))
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
@@ -29,18 +26,15 @@ class Moderation(commands.Cog):
     async def ban(self, ctx: commands.Context, member: discord.Member, reason: str):
         "This command kicks a member."
 
-        if member:
-            try:
-                await member.ban(reason=reason)
-                await ctx.send(config['dialog_ban']['response'].format(mention=member.mention))
-            except HTTPException:
-                await ctx.send(config['dialog_ban']['on_fail'].format(mention=member.mention))
-        else:
-            await ctx.send_help("ban")
+        try:
+            await member.ban(reason=reason)
+            await ctx.send(config['dialog_ban']['response'].format(mention=member.mention))
+        except HTTPException:
+            await ctx.send(config['dialog_ban']['on_fail'].format(mention=member.mention))
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(kick_members=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def nsfw(self, ctx: commands.Context, set_nsfw: bool = None):
         "Toggle the channel to nsfw mode."
         channel: discord.TextChannel = ctx.channel
@@ -48,12 +42,9 @@ class Moderation(commands.Cog):
         if set_nsfw is None:
             set_nsfw = not channel.is_nsfw()
 
-        try:
-            await channel.edit(nsfw=set_nsfw)
-            await ctx.send(config['dialog_nsfw']['response']
-                .format(channel=channel.mention, status=channel.is_nsfw()))
-        except (discord.Forbidden, HTTPException):
-            await ctx.send("Failed to set nsfw mark for this channel.")
+        await channel.edit(nsfw=set_nsfw)
+        await ctx.send(config['dialog_nsfw']['response']
+            .format(channel=channel.mention, status=channel.is_nsfw()))
 
 def setup(client: commands.Bot):
     "Setup function for the moderation extention."

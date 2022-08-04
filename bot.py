@@ -77,6 +77,8 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 )
     elif isinstance(error, SafebooruConnectionError):
         await ctx.send("Something went wrong with the safebooru.org api.")
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send_help(ctx.command)
     else:
         logging.exception(error)
 
