@@ -57,13 +57,24 @@ async def on_member_update(_: discord.Member, after: discord.Member):
 @client.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     "Handles errors for every command."
-    # log exception
-    logging.exception(error)
-    if ctx.author == client.user:
-        return
     # reply the invoker is missing permissions
-    if error is commands.errors.MissingPermissions:
-        await ctx.send("You do not have the correct permissions to use this command.")
+    if isinstance(error, commands.MissingPermissions):
+        if not ctx.guild:
+            await ctx.send("This command has to be called inside of a guild!")
+        else:
+            await ctx.send(
+                "You are missing permissions to run this command.\n"
+                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
+                )
+    elif isinstance(error, commands.BotMissingPermissions):
+        if not ctx.guild:
+            await ctx.send("This command has to be called inside of a guild!")
+        else:
+            await ctx.send(
+                "I do not have the right permissions to execute this command.\n"
+                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
+                )
+
 
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):
