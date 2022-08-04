@@ -31,22 +31,13 @@ class Fun(commands.Cog):
     @commands.command()
     async def booru(self, ctx: commands.Context, *args: tuple[str]):
         "Get image from safebooru.org"
-        post: safebooru.SafebooruPost = None
-        try:
-            post = safebooru.random_post(list(args))
-        except safebooru.SafebooruConnectionError:
-            await ctx.send(config['dialog_booru']['on_fail'])
-            return
-
-        if not post:
-            return # should not happen since exception already exited.
+        post = safebooru.random_post(args)
 
         embed = Embed()
         embed.title = f"Post: {post.post_id}"
         embed.description = f"You will find the post here: {post.post_url}"
-        embed.footer = "Post has comments" if post.has_comments else "Post has no comments."
+        embed.set_footer(text="Post has comments" if post.has_comments else "Post has no comments.")
         embed.set_image(url=post.file_url)
-
         await ctx.send(embed=embed)
 
 def setup(client: commands.Bot):

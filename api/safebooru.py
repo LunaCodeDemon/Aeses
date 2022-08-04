@@ -20,7 +20,7 @@ class SafebooruPost:
     has_comments: bool
 
 @lru_cache(maxsize=3)
-def count(tags: list[str] = None) -> int:
+def count(tags: tuple[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
         params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
@@ -30,7 +30,7 @@ def count(tags: list[str] = None) -> int:
     tree = ET.fromstring(result.text)
     return int(tree.attrib['count'])
 
-def random_post(tags: list[str] = None) -> SafebooruPost:
+def random_post(tags: tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     rng = randint(0, count(tags)-1)
     result = httpx.get(SAFEBOORU_BASEURL,

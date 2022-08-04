@@ -5,6 +5,7 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
+from api.safebooru import SafebooruConnectionError
 from scripts.textfilter import check_nickname, check_text
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -74,7 +75,10 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 "I do not have the right permissions to execute this command.\n"
                 f"Permissions that are missing: ({', '.join(error.missing_perms)})"
                 )
-
+    elif isinstance(error, SafebooruConnectionError):
+        await ctx.send("Something went wrong with the safebooru.org api.")
+    else:
+        logging.exception(error)
 
 EXTENSION_FOLDER = 'cogs'
 for file in os.listdir(EXTENSION_FOLDER):
