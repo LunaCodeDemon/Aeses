@@ -25,4 +25,4 @@ jobs:
         pip install -U pylint
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pylint --disable=fixme $(git ls-files '*.py')
