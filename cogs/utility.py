@@ -5,7 +5,7 @@ from discord.ext import commands
 class HelpCommand(commands.MinimalHelpCommand):
     "Help Command for this bot, might add some custom methods."
 
-class Core(commands.Cog):
+class Utility(commands.Cog):
     "Basic functionalities of the bot, like information."
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
@@ -24,4 +24,4 @@ class Core(commands.Cog):
 
 def setup(client: commands.Bot):
     "Setup function for 'info' cog"
-    client.add_cog(Core(client))
+    client.add_cog(Utility(client))
