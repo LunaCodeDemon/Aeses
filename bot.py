@@ -22,7 +22,7 @@ async def on_message(message: discord.Message):
         return
 
     # filter
-    if check_message(message):
+    if await check_message(message):
         return
 
     await client.process_commands(message)
@@ -34,7 +34,7 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
         return
 
     # filter
-    if check_message(updated):
+    if await check_message(updated):
         return
 
 @client.event
