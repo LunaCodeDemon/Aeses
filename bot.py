@@ -48,10 +48,12 @@ async def on_member_update(_: discord.Member, after: discord.Member):
             logging.exception(err)
 
 @client.event
-async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+async def on_command_error(ctx: commands.Context, error: BaseException):
     "Handles errors for every command."
+    try:
+        raise error
     # reply the invoker is missing permissions
-    if isinstance(error, commands.MissingPermissions):
+    except commands.MissingPermissions:
         if not ctx.guild:
             await ctx.send("This command has to be called inside of a guild!")
         else:
@@ -59,7 +61,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 "You are missing permissions to run this command.\n"
                 f"Permissions that are missing: ({', '.join(error.missing_perms)})"
                 )
-    elif isinstance(error, commands.BotMissingPermissions):
+    except commands.BotMissingPermissions:
         if not ctx.guild:
             await ctx.send("This command has to be called inside of a guild!")
         else:
@@ -67,13 +69,13 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 "I do not have the right permissions to execute this command.\n"
                 f"Permissions that are missing: ({', '.join(error.missing_perms)})"
                 )
-    elif isinstance(error, SafebooruConnectionError):
+    except SafebooruConnectionError:
         await ctx.send("Something went wrong with the safebooru.org api.")
-    elif isinstance(error, SafebooruNothingFound):
+    except SafebooruNothingFound:
         await ctx.send(f"Couldn't find something for given tags. ({', '.join(error.tags)})")
-    elif isinstance(error, commands.MissingRequiredArgument):
+    except commands.MissingRequiredArgument:
         await ctx.send_help(ctx.command)
-    else:
+    finally:
         logging.exception(error)
 
 EXTENSION_FOLDER = 'cogs'
