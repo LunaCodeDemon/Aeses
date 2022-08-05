@@ -51,7 +51,9 @@ async def on_member_update(_: discord.Member, after: discord.Member):
 async def on_command_error(ctx: commands.Context, error: BaseException):
     "Handles errors for every command."
     try:
-        raise error
+        if isinstance(error, commands.CommandInvokeError):
+            error = error.original
+        raise error from None
     # reply the invoker is missing permissions
     except commands.MissingPermissions:
         if not ctx.guild:
@@ -72,7 +74,7 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
     except SafebooruConnectionError:
         await ctx.send("Something went wrong with the safebooru.org api.")
     except SafebooruNothingFound:
-        await ctx.send(f"Couldn't find something for given tags. ({', '.join(error.tags)})")
+        await ctx.send(f"Couldn't find something for given tags. ({', '.join(list(error.tags))})")
     except commands.MissingRequiredArgument:
         await ctx.send_help(ctx.command)
     finally:

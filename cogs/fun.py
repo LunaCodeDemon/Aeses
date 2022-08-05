@@ -29,12 +29,9 @@ class Fun(commands.Cog):
         await ctx.send(embed=pokemon_embed)
 
     @commands.command()
-    async def booru(self, ctx: commands.Context, *args: tuple[str]):
+    async def booru(self, ctx: commands.Context, *args: str):
         "Get image from safebooru.org"
-        try:
-            post = await safebooru.random_post(args)
-        except (safebooru.SafebooruNothingFound, safebooru.SafebooruConnectionError) as err:
-            raise err
+        post = await safebooru.random_post(args)
 
         embed = Embed()
         embed.title = f"Post: {post.post_id}"

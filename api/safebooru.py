@@ -12,9 +12,9 @@ class SafebooruNothingFound(Exception):
     "Couldn't find anything for given tags."
     tags: tuple[str]
 
-    def __init__(self, tags: tuple[str], *args: object) -> None:
+    def __init__(self, tags: tuple[str]) -> None:
         "set the tags"
-        super().__init__(*args)
+        super().__init__(self.__doc__)
         self.tags = tags
 
 SAFEBOORU_DEFAULTS = {'page': "dapi", 'q': "index"}
@@ -39,7 +39,7 @@ def count(tags: tuple[str] = None) -> int:
     tree = ET.fromstring(result.text)
     return int(tree.attrib['count'])
 
-def random_post(tags: tuple[str] = None) -> SafebooruPost:
+async def random_post(tags: tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     available = count(tags)-1
     if available < 0:
