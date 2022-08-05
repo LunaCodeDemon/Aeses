@@ -1,5 +1,4 @@
 "This module interfaces with safebooru.org"
-from typing import Tuple
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 from functools import lru_cache
@@ -8,6 +7,15 @@ import httpx
 
 class SafebooruConnectionError(Exception):
     "Couldn't connect to safebooru."
+
+class SafebooruNothingFound(Exception):
+    "Couldn't find anything for given tags."
+    tags: tuple[str]
+
+    def __init__(self, tags: tuple[str], *args: object) -> None:
+        "set the tags"
+        super().__init__(*args)
+        self.tags = tags
 
 SAFEBOORU_DEFAULTS = {'page': "dapi", 'q': "index"}
 SAFEBOORU_BASEURL = "https://safebooru.org/index.php"
@@ -21,7 +29,7 @@ class SafebooruPost:
     has_comments: bool
 
 @lru_cache(maxsize=3)
-def count(tags: Tuple[str] = None) -> int:
+def count(tags: tuple[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
         params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
@@ -31,9 +39,12 @@ def count(tags: Tuple[str] = None) -> int:
     tree = ET.fromstring(result.text)
     return int(tree.attrib['count'])
 
-def random_post(tags: Tuple[str] = None) -> SafebooruPost:
+def random_post(tags: tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
-    rng = randint(0, count(tags)-1)
+    available = count(tags)-1
+    if available is None:
+        raise SafebooruNothingFound(tags=tags)
+    rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
         params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': tags, 's': "post", 'pid': rng})
     if result.status_code != 200:

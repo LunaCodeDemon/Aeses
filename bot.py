@@ -5,7 +5,7 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
-from api.safebooru import SafebooruConnectionError
+from api.safebooru import SafebooruConnectionError, SafebooruNothingFound
 from scripts.textfilter import check_nickname, check_message
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -69,6 +69,8 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 )
     elif isinstance(error, SafebooruConnectionError):
         await ctx.send("Something went wrong with the safebooru.org api.")
+    elif isinstance(error, SafebooruNothingFound):
+        await ctx.send(f"Couldn't find something for given tags. ({', '.join(error.tags)})")
     elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.send_help(ctx.command)
     else:
