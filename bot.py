@@ -6,6 +6,7 @@ import os
 import discord
 from discord.ext import commands
 from api.safebooru import SafebooruConnectionError, SafebooruNothingFound
+from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -40,10 +41,13 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
 @client.event
 async def on_member_update(_: discord.Member, after: discord.Member):
     "React on updates of the member"
-    if check_nickname(after):
+    client_member: discord.Member = after.guild.fetch_member(client.user.id)
+    if client_member.guild_permissions.manage_nicknames and check_nickname(after):
         try:
-            await after.edit(nick=None)
-            await after.send("Your nickname got removed.")
+            if after.nick is None:
+                await after.edit(nick=str2only_ascii(after.display_name))
+            else:
+                await after.edit(nick=None)
         except (discord.Forbidden, HTTPException) as err:
             logging.exception(err)
 

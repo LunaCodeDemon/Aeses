@@ -2,9 +2,11 @@
 import os
 from sqlalchemy import create_engine, text
 
+from scripts.conversion import str2bool
+
 DB_FILENAME = "/data.db"
 DEBUG = os.environ.get('DEBUG') or "false"
-if DEBUG.lower() in ['true', 'yes', 't', '1']:
+if str2bool(DEBUG):
     DB_FILENAME = "/:memory:"
 
 engine = create_engine(f"sqlite://{DB_FILENAME}", echo=True)

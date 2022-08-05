@@ -39,9 +39,9 @@ async def check_message(message: discord.Message) -> bool:
 
 def check_nickname(member: discord.Member) -> bool:
     "Check a name for potential threats."
-    if member.nick is not None:
-        if check_for_emoji(member.nick):
+    if member.display_name is not None:
+        if check_for_emoji(member.display_name):
             return True
-        if check_for_links(member.nick):
+        if check_for_links(member.display_name):
             return True
     return False
