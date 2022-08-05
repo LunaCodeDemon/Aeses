@@ -41,7 +41,7 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
 @client.event
 async def on_member_update(_: discord.Member, after: discord.Member):
     "React on updates of the member"
-    client_member: discord.Member = after.guild.fetch_member(client.user.id)
+    client_member: discord.Member = await after.guild.fetch_member(client.user.id)
     if client_member.guild_permissions.manage_nicknames and check_nickname(after):
         try:
             if after.nick is None:
