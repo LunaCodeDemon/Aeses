@@ -1,4 +1,5 @@
 "Module for fun commands."
+from typing import Tuple
 from discord import Embed
 from discord.ext import commands
 from api import pokeapi
@@ -29,7 +30,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=pokemon_embed)
 
     @commands.command()
-    async def booru(self, ctx: commands.Context, *args: tuple[str]):
+    async def booru(self, ctx: commands.Context, *args: Tuple[str]):
         "Get image from safebooru.org"
         post = safebooru.random_post(args)
 

@@ -13,6 +13,5 @@ def main():
         return
     client.run(DISCORD_TOKEN)
 
-
 if __name__ == "__main__":
     main()

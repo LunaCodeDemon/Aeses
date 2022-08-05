@@ -1,4 +1,5 @@
 "This module interfaces with safebooru.org"
+from typing import Tuple
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 from functools import lru_cache
@@ -20,7 +21,7 @@ class SafebooruPost:
     has_comments: bool
 
 @lru_cache(maxsize=3)
-def count(tags: tuple[str] = None) -> int:
+def count(tags: Tuple[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
         params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
@@ -30,7 +31,7 @@ def count(tags: tuple[str] = None) -> int:
     tree = ET.fromstring(result.text)
     return int(tree.attrib['count'])
 
-def random_post(tags: tuple[str] = None) -> SafebooruPost:
+def random_post(tags: Tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     rng = randint(0, count(tags)-1)
     result = httpx.get(SAFEBOORU_BASEURL,

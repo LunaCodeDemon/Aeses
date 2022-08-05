@@ -6,7 +6,7 @@ import os
 import discord
 from discord.ext import commands
 from api.safebooru import SafebooruConnectionError
-from scripts.textfilter import check_nickname, check_text
+from scripts.textfilter import check_nickname, check_message
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
@@ -22,12 +22,7 @@ async def on_message(message: discord.Message):
         return
 
     # filter
-    if check_text(message.content):
-        try:
-            message.delete()
-        except (discord.Forbidden, discord.NotFound, HTTPException):
-            logging.exception("Deletion of filtered message failed.")
-
+    if check_message(message):
         return
 
     await client.process_commands(message)
@@ -39,11 +34,8 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
         return
 
     # filter
-    if check_text(updated.content):
-        try:
-            updated.delete()
-        except (discord.Forbidden, discord.NotFound, HTTPException):
-            logging.exception("Deletion of filtered message failed.")
+    if check_message(updated):
+        return
 
 @client.event
 async def on_member_update(_: discord.Member, after: discord.Member):
