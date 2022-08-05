@@ -42,7 +42,7 @@ def count(tags: tuple[str] = None) -> int:
 def random_post(tags: tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     available = count(tags)-1
-    if available is None:
+    if available < 0:
         raise SafebooruNothingFound(tags=tags)
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
