@@ -2,9 +2,9 @@
 
 import re
 from functools import lru_cache
+import logging
 import emoji
 import discord
-import logging
 
 @lru_cache(maxsize=5)
 def check_for_links(text: str) -> bool:
@@ -33,8 +33,7 @@ async def check_message(message: discord.Message) -> bool:
             await message.delete()
         except (discord.Forbidden, discord.NotFound, discord.HTTPException):
             logging.exception("Deletion of filtered message failed.")
-        finally:
-            return True
+        return True
     return False
 
 def check_nickname(member: discord.Member) -> bool:
