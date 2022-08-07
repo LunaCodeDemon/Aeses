@@ -3,6 +3,7 @@
 __pycache__
 start.sh
 .pytest_cache
+.devcontainer
 
 # runtime output (databases, log files)
 *.db
