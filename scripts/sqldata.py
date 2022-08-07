@@ -89,7 +89,7 @@ def create_table_filterconfig():
         )
 
 
-def get_filterconfig(guild_id: int, filter_type: FilterType):
+def get_filterconfig(guild_id: int, filter_type: FilterType) -> None|list[FilterConfig]:
     "Get filter config for guild, can be multiple."
     with engine.connect() as conn:
         result = conn.execute(
@@ -98,7 +98,14 @@ def get_filterconfig(guild_id: int, filter_type: FilterType):
             "AND filter_type = :filter_type;",
             {"guild_id": guild_id, "filter_type": filter_type.value}
         ).all()
-        return result
+        return result and [
+            FilterConfig(
+                guild_id=filterconfig[0],
+                filter_type=FilterType(filterconfig[1]),
+                active=bool(filterconfig[2])
+                )
+                for filterconfig in result
+            ]
 
 
 def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
@@ -109,15 +116,22 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
             "SET active = :active "
             "WHERE guild_id = :guild_id "
             "AND filter_type = :filter_type;",
-            {"filter_type": filter_type, "guild_id": guild_id, "active": active}
+            {"filter_type": filter_type.value, "guild_id": guild_id, "active": active}
         )
 
 
 def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
     "Insert filter configuration."
+    if get_filterconfig(guild_id, filter_type) in [[], None]:
+        update_filterconfig(guild_id, filter_type, active)
+        return
+
     with engine.connect() as conn:
         conn.execute(
             "INSERT INTO filterconfig (guild_id, filter_type, active) "
             "VALUES (:guild_id, :filter_type, :active)",
-            {"guild_id": guild_id, "filter_type": filter_type, "active": active}
+            {"guild_id": guild_id, "filter_type": filter_type.value, "active": active}
         )
+
+create_table_filterconfig()
+# create_table_logchannel()
