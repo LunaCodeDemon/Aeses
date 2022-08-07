@@ -5,8 +5,10 @@ from discord.ext import commands
 
 # from scripts.sqldata import insert_logchannel
 
+
 class Settings(commands.Cog):
     "Moderative group to set guild settings."
+
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
 
@@ -27,6 +29,7 @@ class Settings(commands.Cog):
     #                 .format(mention=log_channel.mention))
     #     else:
     #         await ctx.send_help("logchannel")
+
 
 def setup(client: commands.Bot):
     "Setup function for settings COG"

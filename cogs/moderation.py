@@ -4,8 +4,10 @@ import discord
 from discord.ext import commands
 from iniloader import config
 
+
 class Moderation(commands.Cog):
     "Moderation command group"
+
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
 
@@ -44,7 +46,8 @@ class Moderation(commands.Cog):
 
         await channel.edit(nsfw=set_nsfw)
         await ctx.send(config['dialog_nsfw']['response']
-            .format(channel=channel.mention, status=channel.is_nsfw()))
+                       .format(channel=channel.mention, status=channel.is_nsfw()))
+
 
 def setup(client: commands.Bot):
     "Setup function for the moderation extention."

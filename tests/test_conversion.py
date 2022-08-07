@@ -7,6 +7,7 @@ def test_str2bool():
     assert conversion.str2bool("true")
     assert conversion.str2bool("false") is False
 
+
 def test_str2only_ascii():
     "Testing string 2 ascii only"
     result = conversion.str2only_ascii("hello❤️")

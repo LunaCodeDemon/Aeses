@@ -11,10 +11,12 @@ from scripts.textfilter import check_nickname, check_message
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
+
 @client.event
 async def on_ready():
     "This event will be triggered when the client is ready to use."
     print(f"Discord client logged in as {client.user.name}")
+
 
 @client.event
 async def on_message(message: discord.Message):
@@ -28,6 +30,7 @@ async def on_message(message: discord.Message):
 
     await client.process_commands(message)
 
+
 @client.event
 async def on_message_edit(_: discord.Message, updated: discord.Message):
     "This will be triggered whenever a user edits a message."
@@ -37,6 +40,7 @@ async def on_message_edit(_: discord.Message, updated: discord.Message):
     # filter
     if await check_message(updated):
         return
+
 
 @client.event
 async def on_member_update(_: discord.Member, after: discord.Member):
@@ -50,6 +54,7 @@ async def on_member_update(_: discord.Member, after: discord.Member):
                 await after.edit(nick=None)
         except (discord.Forbidden, HTTPException) as err:
             logging.exception(err)
+
 
 @client.event
 async def on_command_error(ctx: commands.Context, error: BaseException):
@@ -66,7 +71,7 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
             await ctx.send(
                 "You are missing permissions to run this command.\n"
                 f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-                )
+            )
     except commands.BotMissingPermissions:
         if not ctx.guild:
             await ctx.send("This command has to be called inside of a guild!")
@@ -74,7 +79,7 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
             await ctx.send(
                 "I do not have the right permissions to execute this command.\n"
                 f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-                )
+            )
     except SafebooruConnectionError:
         await ctx.send("Something went wrong with the safebooru.org api.")
     except SafebooruNothingFound:

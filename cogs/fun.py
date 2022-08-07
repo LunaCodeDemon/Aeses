@@ -5,8 +5,10 @@ from api import pokeapi
 from api import safebooru
 from iniloader import config
 
+
 class Fun(commands.Cog):
     "This cog contains various fun commands"
+
     def __init__(self, client: commands.Bot):
         "Initialiser for 'Fun' cog."
         self.client = client
@@ -24,7 +26,7 @@ class Fun(commands.Cog):
         pokemon_embed = pokeapi.gen_pokemon_embed(pokemon_data)
         if not pokemon_embed:
             await ctx.send(config['dialog_pokemon']['on_fail']
-                .format(pokename=name))
+                           .format(pokename=name))
             return
         await ctx.send(embed=pokemon_embed)
 
@@ -36,9 +38,11 @@ class Fun(commands.Cog):
         embed = Embed()
         embed.title = f"Post: {post.post_id}"
         embed.description = f"You will find the post here: {post.post_url}"
-        embed.set_footer(text="Post has comments" if post.has_comments else "Post has no comments.")
+        embed.set_footer(
+            text="Post has comments" if post.has_comments else "Post has no comments.")
         embed.set_image(url=post.file_url)
         await ctx.send(embed=embed)
+
 
 def setup(client: commands.Bot):
     "Setup function for Fun command collection."

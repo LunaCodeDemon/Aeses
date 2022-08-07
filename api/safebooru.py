@@ -5,8 +5,10 @@ from functools import lru_cache
 from random import randint
 import httpx
 
+
 class SafebooruConnectionError(Exception):
     "Couldn't connect to safebooru."
+
 
 class SafebooruNothingFound(Exception):
     "Couldn't find anything for given tags."
@@ -17,8 +19,10 @@ class SafebooruNothingFound(Exception):
         super().__init__(self.__doc__)
         self.tags = tags
 
+
 SAFEBOORU_DEFAULTS = {'page': "dapi", 'q': "index"}
 SAFEBOORU_BASEURL = "https://safebooru.org/index.php"
+
 
 @dataclass
 class SafebooruPost:
@@ -28,16 +32,18 @@ class SafebooruPost:
     post_url: str
     has_comments: bool
 
+
 @lru_cache(maxsize=3)
 def count(tags: tuple[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
+                       params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
     if result.status_code != 200:
         raise SafebooruConnectionError
     # read retrieved data
     tree = ET.fromstring(result.text)
     return int(tree.attrib['count'])
+
 
 async def random_post(tags: tuple[str] = None) -> SafebooruPost:
     "Get a random post from booru"
@@ -46,7 +52,7 @@ async def random_post(tags: tuple[str] = None) -> SafebooruPost:
         raise SafebooruNothingFound(tags=tags)
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': tags, 's': "post", 'pid': rng})
+                       params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': tags, 's': "post", 'pid': rng})
     if result.status_code != 200:
         raise SafebooruConnectionError
     # read retrived data

@@ -6,11 +6,13 @@ import logging
 import emoji
 import discord
 
+
 @lru_cache(maxsize=5)
 def check_for_links(text: str) -> bool:
     "Returns true if a link exists in the string."
     regex = r"(https?:\/\/)?\w+(\.\w+)+(\/+[^\s]+)*\/?"
     return None is not re.search(regex, text)
+
 
 @lru_cache(maxsize=10)
 def check_for_emoji(text: str) -> bool:
@@ -20,11 +22,13 @@ def check_for_emoji(text: str) -> bool:
             return True
     return False
 
+
 def check_text(text: str) -> bool:
     "Check a message for potential threats."
     if check_for_links(text):
         return True
     return False
+
 
 async def check_message(message: discord.Message) -> bool:
     "Check message for filtered text and delete it."
@@ -35,6 +39,7 @@ async def check_message(message: discord.Message) -> bool:
             logging.exception("Deletion of filtered message failed.")
         return True
     return False
+
 
 def check_nickname(member: discord.Member) -> bool:
     "Check a name for potential threats."
