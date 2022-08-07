@@ -6,6 +6,8 @@ import logging
 import emoji
 import discord
 
+from scripts.sqldata import FilterType, get_filterconfig
+
 
 @lru_cache(maxsize=5)
 def check_for_links(text: str) -> bool:
@@ -23,16 +25,26 @@ def check_for_emoji(text: str) -> bool:
     return False
 
 
-def check_text(text: str) -> bool:
+def check_text(text: str, filter_types: list[FilterType]) -> bool:
     "Check a message for potential threats."
-    if check_for_links(text):
+    if FilterType.LINK in filter_types and check_for_links(text):
         return True
     return False
 
 
 async def check_message(message: discord.Message) -> bool:
     "Check message for filtered text and delete it."
-    if check_text(message.content):
+    if not message.guild:
+        return
+
+    filterconfigs = get_filterconfig(message.guild.id)
+    if not filterconfigs:
+        return
+    filter_types = [f.filter_type for f in filterconfigs if f.active]
+    if len(filter_types) == 0:
+        return
+
+    if check_text(message.content, filter_types):
         try:
             await message.delete()
         except (discord.Forbidden, discord.NotFound, discord.HTTPException):
@@ -43,9 +55,16 @@ async def check_message(message: discord.Message) -> bool:
 
 def check_nickname(member: discord.Member) -> bool:
     "Check a name for potential threats."
+    filterconfigs = get_filterconfig(member.guild.id)
+    if not filterconfigs:
+        return
+    filter_types = [f.filter_type for f in filterconfigs if f.active]
+    if len(filter_types) == 0:
+        return
+
     if member.display_name is not None:
-        if check_for_emoji(member.display_name):
+        if FilterType.EMOJI_NAME in filter_types and check_for_emoji(member.display_name):
             return True
-        if check_for_links(member.display_name):
+        if FilterType.LINK in filter_types and check_for_links(member.display_name):
             return True
     return False

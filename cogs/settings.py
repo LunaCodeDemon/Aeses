@@ -1,9 +1,10 @@
 "This Cog lets server moderators change settings for the guild."
-# from discord import TextChannel, Permissions
+from argparse import FileType
+import discord
 from discord.ext import commands
 # from iniloader import config
 
-# from scripts.sqldata import insert_logchannel
+from scripts import sqldata
 
 
 class Settings(commands.Cog):
@@ -30,6 +31,41 @@ class Settings(commands.Cog):
     #     else:
     #         await ctx.send_help("logchannel")
 
+    @commands.command(alias=["filter"])
+    async def filterconf(self, ctx: commands.Context, filter_type:str = None, active:bool = None):
+        """
+            Set which filter type to enable,
+            calling it without filter type lists filter types and with it will toggle the filter.
+            The active parameter will allow you to set the filter directly.
+
+            Available filter types:
+            - *emona*: check for emoji in names
+            - *links*: check for links in messages and names
+
+            (The bot won't do anything if the permissions are to low.)
+        """
+        if not filter_type:
+            filterconfig = sqldata.get_filterconfig(ctx.guild.id)
+            active_filters = "\n".join(
+                [f"- {fi.filter_type.value}" for fi in filterconfig if fi.active])
+            inactive_filters = "\n".join(
+                [f"- {fi.filter_type.value}" for fi in filterconfig if not fi.active])
+            embed = discord.Embed()
+            embed.title = "Filters"
+            embed.add_field(name="Active", value=active_filters)
+            embed.add_field(name="Inactive", value=inactive_filters)
+            await ctx.send(embed=embed)
+            return
+        try:
+            ftype = FileType(filter_type)
+            if active is None:
+                filter_active = sqldata.get_filterconfig(ctx.guild.id, ftype)[0].active
+                sqldata.update_filterconfig(ctx.guild.id, ftype, not filter_active)
+            else:
+                sqldata.insert_filterconfig(ctx.guild.id, ftype, active)
+            await ctx.send("Filter set and will now listen for new activity.")
+        except ValueError:
+            await ctx.send("Invalid filter found in arguments")
 
 def setup(client: commands.Bot):
     "Setup function for settings COG"

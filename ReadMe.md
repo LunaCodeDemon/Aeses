@@ -38,13 +38,28 @@ Simply use one like [pm2](https://pm2.keymetrics.io/) or [forever](https://githu
 
 It is recommended to use the `help` command to get infos on how to use commands.
 
-| Command       | Description             |
-| ------------- | ----------------------- |
-| `!help`       | Gives help for commands |
-| `!ban`        | Bans a guild member.    |
-| `!kick`       | Kicks a guild member.   |
-| `!logchannel` | Set log channel.        |
-| `!pokemon`    | Search for pokemon.     |
+| Command       | Description                   |
+| ------------- | -----------------------       |
+| `!help`       | Gives help for commands       |
+| `!ban`        | Bans a guild member.          |
+| `!kick`       | Kicks a guild member.         |
+| `!logchannel` | Set log channel.              |
+| `!pokemon`    | Search for pokemon.           |
+| `!filterconf` | Enable chat and name filters  |
+
+
+## Filters
+The spam protection filters are a way to manage what you want to be automatically deleted.
+The filter key is used for activating it with the `filterconf` command.
+
+| filter key | Description                                     |
+|------------|----------------------------------               |
+| `emona`    | Tries to remove emoji from names                |
+| `links`    | Tries to remove links from names and messages   |
+
+### Attention: Behavior of Filters
+Filters that change the nickname need a higher permission than the target to work.
+The `links` filter will try to remove every link, there isn't a whitelist/blacklist yet.
 
 ## Enviroment-Variables
 

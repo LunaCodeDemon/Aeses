@@ -26,7 +26,7 @@ DEBUG = os.environ.get('DEBUG') or "false"
 if str2bool(DEBUG):
     DB_FILENAME = "/:memory:"
 
-engine = create_engine(f"sqlite://{DB_FILENAME}", echo=True)
+engine = create_engine(f"sqlite://{DB_FILENAME}", echo=DEBUG)
 
 
 def create_table_logchannel():
@@ -89,13 +89,17 @@ def create_table_filterconfig():
         )
 
 
-def get_filterconfig(guild_id: int, filter_type: FilterType) -> None|list[FilterConfig]:
+def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> None | list[FilterConfig]:
     "Get filter config for guild, can be multiple."
+    query = (
+        "SELECT * FROM filterconfig "
+        "WHERE guild_id = :guild_id "
+    )
+    if filter_type:
+        query += "AND filter_type = :filter_type"
     with engine.connect() as conn:
         result = conn.execute(
-            "SELECT * FROM filterconfig "
-            "WHERE guild_id = :guild_id "
-            "AND filter_type = :filter_type;",
+            query,
             {"guild_id": guild_id, "filter_type": filter_type.value}
         ).all()
         return result and [
@@ -103,9 +107,9 @@ def get_filterconfig(guild_id: int, filter_type: FilterType) -> None|list[Filter
                 guild_id=filterconfig[0],
                 filter_type=FilterType(filterconfig[1]),
                 active=bool(filterconfig[2])
-                )
-                for filterconfig in result
-            ]
+            )
+            for filterconfig in result
+        ]
 
 
 def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
@@ -116,7 +120,8 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
             "SET active = :active "
             "WHERE guild_id = :guild_id "
             "AND filter_type = :filter_type;",
-            {"filter_type": filter_type.value, "guild_id": guild_id, "active": active}
+            {"filter_type": filter_type.value,
+                "guild_id": guild_id, "active": active}
         )
 
 
@@ -132,6 +137,7 @@ def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
             "VALUES (:guild_id, :filter_type, :active)",
             {"guild_id": guild_id, "filter_type": filter_type.value, "active": active}
         )
+
 
 create_table_filterconfig()
 # create_table_logchannel()
