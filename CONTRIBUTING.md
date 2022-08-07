@@ -21,7 +21,6 @@ Since I do not use any formatting tools I should explain how my code is written.
 - I use 4 space indents.
 - **Always** put spaces after a comma (`[1, 5, 4]`)
 - I use type hinting to make clear what a function takes and returns.
-- Between functions is only one space and between classes are 2.
 - Normal strings are with double quotes and keys are with single quotes. (`arr['hello'] = "world"`) 
 
 *Tip: use pylint to check, on your pull request pylint will run over all the code.*
