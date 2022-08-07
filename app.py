@@ -2,7 +2,10 @@
 
 import logging
 import os
+from dotenv import load_dotenv
 from bot import client
+
+load_dotenv()
 
 DISCORD_TOKEN = os.environ.get('DISCORD_TOKEN')
 

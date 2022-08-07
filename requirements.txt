@@ -2,3 +2,4 @@ discord.py
 emoji
 sqlalchemy
 httpx
+python-dotenv
