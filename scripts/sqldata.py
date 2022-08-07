@@ -1,8 +1,25 @@
 "Handles most sql actions"
+from dataclasses import dataclass
+from enum import Enum
 import os
 from sqlalchemy import create_engine, text
 
 from scripts.conversion import str2bool
+
+
+class FilterType(Enum):
+    "Enum for filter types"
+    EMOJI_NAME = "emona"
+    LINK = "links"
+
+
+@dataclass
+class FilterConfig:
+    "Filter configurations"
+    guild_id: int
+    filter_type: FilterType
+    active: bool
+
 
 DB_FILENAME = "/data.db"
 DEBUG = os.environ.get('DEBUG') or "false"
@@ -57,4 +74,50 @@ def insert_logchannel(guild_id: int, channel_id: int) -> None:
         conn.execute(
             text("INSERT INTO logchannels (guild_id, channel_id)"
                  " VALUES (:guild_id, :channel_id)"),
-            [{"guild_id": int(guild_id), "channel_id": int(channel_id)}])
+            [{"guild_id": guild_id, "channel_id": channel_id}])
+
+
+def create_table_filterconfig():
+    "Creates a table for guild filter."
+    with engine.connect() as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS filterconfig("
+            "guild_id unsigned long, "
+            "filter_type VARCHAR(8), "
+            "active boolean"
+            ");"
+        )
+
+
+def get_filterconfig(guild_id: int, filter_type: FilterType):
+    "Get filter config for guild, can be multiple."
+    with engine.connect() as conn:
+        result = conn.execute(
+            "SELECT * FROM filterconfig "
+            "WHERE guild_id = :guild_id "
+            "AND filter_type = :filter_type;",
+            {"guild_id": guild_id, "filter_type": filter_type.value}
+        ).all()
+        return result
+
+
+def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
+    "Update filterconfig status"
+    with engine.connect() as conn:
+        conn.execute(
+            "UPDATE filterconfig "
+            "SET active = :active "
+            "WHERE guild_id = :guild_id "
+            "AND filter_type = :filter_type;",
+            {"filter_type": filter_type, "guild_id": guild_id, "active": active}
+        )
+
+
+def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
+    "Insert filter configuration."
+    with engine.connect() as conn:
+        conn.execute(
+            "INSERT INTO filterconfig (guild_id, filter_type, active) "
+            "VALUES (:guild_id, :filter_type, :active)",
+            {"guild_id": guild_id, "filter_type": filter_type, "active": active}
+        )
