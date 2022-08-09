@@ -1,5 +1,4 @@
 "This module interfaces with pokeapi"
-from functools import cache, lru_cache
 from random import choice
 import httpx
 from discord import Embed
@@ -7,13 +6,11 @@ from discord import Embed
 POKEAPI_BASEURL = "https://pokeapi.co/api/v2"
 
 
-@cache
 def get_full_pokemon_list():
     "Get the entire list of pokemon that exist."
     return httpx.get(f"{POKEAPI_BASEURL}/pokemon?limit=100000&offset=0").json()
 
 
-@lru_cache(maxsize=50)
 def get_pokemon(search_tag: str):
     "Get a pokemon from pokeapi."
     return httpx.get(f"{POKEAPI_BASEURL}/pokemon/{search_tag}").json()

@@ -2,6 +2,7 @@
 
 import re
 from functools import lru_cache
+from typing import List
 import logging
 import emoji
 import discord
@@ -25,7 +26,7 @@ def check_for_emoji(text: str) -> bool:
     return False
 
 
-def check_text(text: str, filter_types: list[FilterType]) -> bool:
+def check_text(text: str, filter_types: List[FilterType]) -> bool:
     "Check a message for potential threats."
     if FilterType.LINK in filter_types and check_for_links(text):
         return True

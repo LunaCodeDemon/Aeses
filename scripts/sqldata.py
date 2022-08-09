@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from enum import Enum
 import os
+from typing import Optional, List
 from sqlalchemy import create_engine, text
 
 from scripts.conversion import str2bool
@@ -22,7 +23,7 @@ class FilterConfig:
 
 
 DB_FILENAME = "/data.db"
-DEBUG = os.environ.get('DEBUG') or "false"
+DEBUG = str2bool(os.environ.get("DEBUG"))
 if str2bool(DEBUG):
     DB_FILENAME = "/:memory:"
 
@@ -38,9 +39,9 @@ def create_table_logchannel():
                  "guild_id unsigned long);"))
 
 
-def get_logchannel(guild_id: int) -> int | None:
+def get_logchannel(guild_id: int) -> Optional[int]:
     "Get the log channel of the guild."
-    channel_id: int | None = None
+    channel_id: Optional[int] = None
     with engine.connect() as conn:
         result = conn.execute(
             text("SELECT channel_id FROM logchannels "
@@ -89,18 +90,22 @@ def create_table_filterconfig():
         )
 
 
-def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> None | list[FilterConfig]:
+def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> Optional[List[FilterConfig]]:
     "Get filter config for guild, can be multiple."
     query = (
         "SELECT * FROM filterconfig "
         "WHERE guild_id = :guild_id "
     )
+    params = {
+        "guild_id": guild_id
+    }
     if filter_type:
         query += "AND filter_type = :filter_type"
+        params.update({"filter_type": filter_type})
     with engine.connect() as conn:
         result = conn.execute(
             query,
-            {"guild_id": guild_id, "filter_type": filter_type.value}
+            params
         ).all()
         return result and [
             FilterConfig(
