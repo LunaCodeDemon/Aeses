@@ -60,7 +60,7 @@ async def random_post(tags: Tuple[str] = None) -> SafebooruPost:
     tree = ET.fromstring(result.text)
     post_data = tree[0].attrib
     return SafebooruPost(
-        post_id=post_data['id'],
+        post_id=int(post_data['id']),
         file_url=post_data['file_url'],
         post_url=f"https://safebooru.org/index.php?page=post&s=view&id={post_data['id']}",
         has_comments=post_data['has_comments']
