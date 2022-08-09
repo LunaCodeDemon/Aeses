@@ -36,14 +36,14 @@ def check_text(text: str, filter_types: List[FilterType]) -> bool:
 async def check_message(message: discord.Message) -> bool:
     "Check message for filtered text and delete it."
     if not message.guild:
-        return
+        return False
 
     filterconfigs = get_filterconfig(message.guild.id)
     if not filterconfigs:
-        return
+        return False
     filter_types = [f.filter_type for f in filterconfigs if f.active]
     if len(filter_types) == 0:
-        return
+        return False
 
     if check_text(message.content, filter_types):
         try:
@@ -58,10 +58,10 @@ def check_nickname(member: discord.Member) -> bool:
     "Check a name for potential threats."
     filterconfigs = get_filterconfig(member.guild.id)
     if not filterconfigs:
-        return
+        return False
     filter_types = [f.filter_type for f in filterconfigs if f.active]
     if len(filter_types) == 0:
-        return
+        return False
 
     if member.display_name is not None:
         if FilterType.EMOJI_NAME in filter_types and check_for_emoji(member.display_name):
