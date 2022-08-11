@@ -1,0 +1,40 @@
+name: "Bug Report for selfhosted instances"
+description: "File a bug report your selfhosted instances."
+title: "[Bug-Selfhosted]: "
+labels: ["bug", "selfhosted"]
+assignees:
+  - ChinoCodeDemon
+body:
+  - type: textarea
+    attributes:
+      id: what-happened
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    attribute:
+      id: bot-response
+      description: Please paste or describe the bots response as accurate as possible.
+  - type: input
+    attribute:
+      id: python-version
+      description: What python version are you running?
+    validations:
+      required: true
+  - type: dropdown
+    attribute:
+      id: operating-system
+      description: What operating system are you using for your instance.
+      multiple: false
+      options:
+      - Windows
+      - Linux
+      - MacOS
+      - BSD
+  - type: textarea
+    attribute:
+      id: how-to-replicate
+      description: Please describe how to replicate your problem.
+  - type: markdown
+    attribute:
+      value: "Thanks for completing this form. This will help to improve the bot further."

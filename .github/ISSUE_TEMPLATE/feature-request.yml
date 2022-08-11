@@ -1,0 +1,15 @@
+name: "Feature Request"
+description: "Ask for a new feature."
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      id: problem
+      name: Describe the problem to be solved by the new feature.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      id: solution
+      name: Suggest a solution that could solve the problem.

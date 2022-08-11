@@ -1,0 +1,20 @@
+name: "Bug Report"
+description: "File a bug report."
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+  - ChinoCodeDemon
+body:
+  - type: textarea
+    attributes:
+      id: what-happened
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    attribute:
+      id: bot-response
+      description: Please paste or describe the bots response as accurate as possible.
+  - type: markdown
+    attribute:
+      value: "Thanks for completing this form. This will help to improve the bot further."
