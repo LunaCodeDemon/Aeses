@@ -8,13 +8,15 @@ body:
   - type: textarea
     attributes:
       id: what-happened
-      description: What went wrong?
+      label: What went wrong?
+      description: Please describe what went wrong and how it happened.
     validations:
       required: true
   - type: textarea
-    attribute:
+    attributes:
       id: bot-response
+      label: Bot Response.
       description: Please paste or describe the bots response as accurate as possible.
   - type: markdown
-    attribute:
+    attributes:
       value: "Thanks for completing this form. This will help to improve the bot further."

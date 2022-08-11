@@ -8,22 +8,26 @@ body:
   - type: textarea
     attributes:
       id: what-happened
-      description: What went wrong?
+      label: What went wrong?
+      description: Please describe what went wrong and how it happened.
     validations:
       required: true
   - type: textarea
-    attribute:
+    attributes:
       id: bot-response
+      label: Bot Response.
       description: Please paste or describe the bots response as accurate as possible.
   - type: input
-    attribute:
+    attributes:
       id: python-version
+      label: Python Version
       description: What python version are you running?
     validations:
       required: true
   - type: dropdown
-    attribute:
+    attributes:
       id: operating-system
+      label: Operating System
       description: What operating system are you using for your instance.
       multiple: false
       options:
@@ -32,8 +36,9 @@ body:
       - MacOS
       - BSD
   - type: textarea
-    attribute:
+    attributes:
       id: how-to-replicate
+      label: How to replicate the bug
       description: Please describe how to replicate your problem.
   - type: markdown
     attribute:

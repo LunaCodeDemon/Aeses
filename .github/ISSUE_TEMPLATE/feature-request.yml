@@ -6,10 +6,12 @@ body:
   - type: textarea
     attributes:
       id: problem
-      name: Describe the problem to be solved by the new feature.
+      label: Described Problem
+      description: Describe the problem to be solved by the new feature.
     validations:
       required: true
   - type: textarea
     attributes:
       id: solution
-      name: Suggest a solution that could solve the problem.
+      label: Suggested Solution
+      description: Suggest a solution that could solve the problem.
