@@ -19,14 +19,12 @@ body:
       description: Please paste or describe the bots response as accurate as possible.
   - type: input
     attributes:
-      id: python-version
       label: Python Version
       description: What python version are you running?
     validations:
       required: true
   - type: dropdown
     attributes:
-      id: operating-system
       label: Operating System
       description: What operating system are you using for your instance.
       multiple: false
@@ -41,5 +39,5 @@ body:
       label: How to replicate the bug
       description: Please describe how to replicate your problem.
   - type: markdown
-    attribute:
+    attributes:
       value: "Thanks for completing this form. This will help to improve the bot further."
