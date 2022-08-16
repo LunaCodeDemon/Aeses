@@ -30,7 +30,8 @@ class Settings(commands.Cog):
     #     else:
     #         await ctx.send_help("logchannel")
 
-    @commands.command(alias=["filter"])
+    @commands.command(aliases=["filter"])
+    @commands.has_permissions(administrator=True)
     async def filterconf(self, ctx: commands.Context, filter_type:str = None, active:bool = None):
         """
             Set which filter type to enable,
