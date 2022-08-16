@@ -47,23 +47,26 @@ class Settings(commands.Cog):
         if not filter_type:
             filterconfig = sqldata.get_filterconfig(ctx.guild.id)
 
-            active_filters = "\n".join(
-                    [f"- {fi.filter_type.value}" for fi in filterconfig if fi.active]
-                    )
+            active_filters = [fi.filter_type for fi in filterconfig if fi.active]
 
-            inactive_filters = "\n".join(
-                    [f"- {fi.filter_type.value}" for fi in filterconfig if not fi.active]
-                    )
+            inactive_filters = [fi.filter_type for fi in filterconfig if not fi.active]
 
-            if not active_filters:
-                active_filters = "none"
-            if not inactive_filters:
-                inactive_filters = "none"
+            inactive_filters.extend([
+                    ft for ft in sqldata.FilterType
+                    if not ft in [*inactive_filters, *active_filters]
+                ])
+
+            active_list = "\n".join([f"- {ft.value}" for ft in active_filters])
+            inactive_list = "\n".join([f"- {ft.value}" for ft in inactive_filters])
+            if not active_list:
+                active_list = "none"
+            if not inactive_list:
+                inactive_list = "none"
 
             embed = discord.Embed()
             embed.title = "Filters"
-            embed.add_field(name="Active", value=active_filters)
-            embed.add_field(name="Inactive", value=inactive_filters)
+            embed.add_field(name="Active", value=active_list)
+            embed.add_field(name="Inactive", value=inactive_list)
             await ctx.send(embed=embed)
             return
         try:
