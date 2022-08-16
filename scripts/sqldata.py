@@ -103,7 +103,7 @@ def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> Optional[
     }
     if filter_type:
         query += "AND filter_type = :filter_type"
-        params.update({"filter_type": filter_type})
+        params.update({"filter_type": filter_type.value})
     with engine.connect() as conn:
         result = conn.execute(
             text(query),
