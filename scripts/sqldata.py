@@ -7,6 +7,15 @@ from sqlalchemy import create_engine, text
 
 from scripts.conversion import str2bool
 
+DB_ENGINE = os.environ.get("DATABASE_ENGINE") or "sqlite"
+DB_URL = os.environ.get("DATABASE_URL") or "/data.db"
+DEBUG = str2bool(os.environ.get("DEBUG"))
+if str2bool(DEBUG):
+    DB_URL = "/:memory:"
+    DB_ENGINE = "sqlite"
+
+engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
+
 
 class FilterType(Enum):
     "Enum for filter types"
@@ -20,15 +29,6 @@ class FilterConfig:
     guild_id: int
     filter_type: FilterType
     active: bool
-
-
-DB_FILENAME = "/data.db"
-DEBUG = str2bool(os.environ.get("DEBUG"))
-if str2bool(DEBUG):
-    DB_FILENAME = "/:memory:"
-
-engine = create_engine(f"sqlite://{DB_FILENAME}", echo=DEBUG)
-
 
 def create_table_logchannel():
     "Create a table for log channel"
