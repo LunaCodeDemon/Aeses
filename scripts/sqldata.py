@@ -35,8 +35,8 @@ def create_table_logchannel():
     with engine.connect() as conn:
         conn.execute(
             text("CREATE TABLE IF NOT EXISTS logchannels"
-                 "(channel_id unsigned long, "
-                 "guild_id unsigned long);"))
+                 "(channel_id unsigned bigint, "
+                 "guild_id unsigned bigint);"))
 
 
 def get_logchannel(guild_id: int) -> Optional[int]:
@@ -83,7 +83,7 @@ def create_table_filterconfig():
     with engine.connect() as conn:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS filterconfig("
-            "guild_id unsigned long, "
+            "guild_id unsigned bigint, "
             "filter_type VARCHAR(8), "
             "active boolean"
             ");"
