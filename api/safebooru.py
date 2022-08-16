@@ -1,6 +1,5 @@
 "This module interfaces with safebooru.org"
-from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, NamedTuple
 import xml.etree.ElementTree as ET
 from functools import lru_cache
 from random import randint
@@ -25,8 +24,7 @@ SAFEBOORU_DEFAULTS = {'page': "dapi", 'q': "index"}
 SAFEBOORU_BASEURL = "https://safebooru.org/index.php"
 
 
-@dataclass
-class SafebooruPost:
+class SafebooruPost(NamedTuple):
     "Dataclass for safebooru.org posts (only contains necessary data)"
     post_id: int
     file_url: str
