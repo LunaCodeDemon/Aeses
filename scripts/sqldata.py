@@ -7,6 +7,15 @@ from sqlalchemy import create_engine, text
 
 from scripts.conversion import str2bool
 
+DB_ENGINE = os.environ.get("DATABASE_ENGINE") or "sqlite"
+DB_URL = os.environ.get("DATABASE_URL") or "/data.db"
+DEBUG = str2bool(os.environ.get("DEBUG"))
+if str2bool(DEBUG):
+    DB_URL = "/:memory:"
+    DB_ENGINE = "sqlite"
+
+engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
+
 
 class FilterType(Enum):
     "Enum for filter types"
@@ -21,22 +30,13 @@ class FilterConfig:
     filter_type: FilterType
     active: bool
 
-
-DB_FILENAME = "/data.db"
-DEBUG = str2bool(os.environ.get("DEBUG"))
-if str2bool(DEBUG):
-    DB_FILENAME = "/:memory:"
-
-engine = create_engine(f"sqlite://{DB_FILENAME}", echo=DEBUG)
-
-
 def create_table_logchannel():
     "Create a table for log channel"
     with engine.connect() as conn:
         conn.execute(
             text("CREATE TABLE IF NOT EXISTS logchannels"
-                 "(channel_id unsigned long, "
-                 "guild_id unsigned long);"))
+                 "(channel_id bigint, "
+                 "guild_id bigint);"))
 
 
 def get_logchannel(guild_id: int) -> Optional[int]:
@@ -82,11 +82,13 @@ def create_table_filterconfig():
     "Creates a table for guild filter."
     with engine.connect() as conn:
         conn.execute(
+            text(
             "CREATE TABLE IF NOT EXISTS filterconfig("
-            "guild_id unsigned long, "
+            "guild_id bigint, "
             "filter_type VARCHAR(8), "
             "active boolean"
             ");"
+            )
         )
 
 
@@ -101,10 +103,10 @@ def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> Optional[
     }
     if filter_type:
         query += "AND filter_type = :filter_type"
-        params.update({"filter_type": filter_type})
+        params.update({"filter_type": filter_type.value})
     with engine.connect() as conn:
         result = conn.execute(
-            query,
+            text(query),
             params
         ).all()
         return result and [
@@ -121,10 +123,10 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
     "Update filterconfig status"
     with engine.connect() as conn:
         conn.execute(
-            "UPDATE filterconfig "
+            text("UPDATE filterconfig "
             "SET active = :active "
             "WHERE guild_id = :guild_id "
-            "AND filter_type = :filter_type;",
+            "AND filter_type = :filter_type;"),
             {"filter_type": filter_type.value,
                 "guild_id": guild_id, "active": active}
         )
@@ -138,8 +140,8 @@ def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
 
     with engine.connect() as conn:
         conn.execute(
-            "INSERT INTO filterconfig (guild_id, filter_type, active) "
-            "VALUES (:guild_id, :filter_type, :active)",
+            text("INSERT INTO filterconfig (guild_id, filter_type, active) "
+            "VALUES (:guild_id, :filter_type, :active)"),
             {"guild_id": guild_id, "filter_type": filter_type.value, "active": active}
         )
 
