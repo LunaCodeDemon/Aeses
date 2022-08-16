@@ -82,11 +82,13 @@ def create_table_filterconfig():
     "Creates a table for guild filter."
     with engine.connect() as conn:
         conn.execute(
+            text(
             "CREATE TABLE IF NOT EXISTS filterconfig("
             "guild_id bigint, "
             "filter_type VARCHAR(8), "
             "active boolean"
             ");"
+            )
         )
 
 
@@ -104,7 +106,7 @@ def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> Optional[
         params.update({"filter_type": filter_type})
     with engine.connect() as conn:
         result = conn.execute(
-            query,
+            text(query),
             params
         ).all()
         return result and [
@@ -121,10 +123,10 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
     "Update filterconfig status"
     with engine.connect() as conn:
         conn.execute(
-            "UPDATE filterconfig "
+            text("UPDATE filterconfig "
             "SET active = :active "
             "WHERE guild_id = :guild_id "
-            "AND filter_type = :filter_type;",
+            "AND filter_type = :filter_type;"),
             {"filter_type": filter_type.value,
                 "guild_id": guild_id, "active": active}
         )
@@ -138,8 +140,8 @@ def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
 
     with engine.connect() as conn:
         conn.execute(
-            "INSERT INTO filterconfig (guild_id, filter_type, active) "
-            "VALUES (:guild_id, :filter_type, :active)",
+            text("INSERT INTO filterconfig (guild_id, filter_type, active) "
+            "VALUES (:guild_id, :filter_type, :active)"),
             {"guild_id": guild_id, "filter_type": filter_type.value, "active": active}
         )
 
