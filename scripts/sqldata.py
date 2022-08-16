@@ -134,7 +134,7 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
 
 def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
     "Insert filter configuration."
-    if get_filterconfig(guild_id, filter_type) in [[], None]:
+    if not get_filterconfig(guild_id, filter_type) in [[], None]:
         update_filterconfig(guild_id, filter_type, active)
         return
 
