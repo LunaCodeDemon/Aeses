@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  aeses:
+    image: aeses
+    build:
+      context: .
+      dockerfile: ./Dockerfile
