@@ -1,5 +1,4 @@
 "This Cog lets server moderators change settings for the guild."
-from argparse import FileType
 import discord
 from discord.ext import commands
 # from iniloader import config
@@ -64,7 +63,7 @@ class Settings(commands.Cog):
             await ctx.send(embed=embed)
             return
         try:
-            ftype = FileType(filter_type)
+            ftype = sqldata.FilterType(filter_type)
             if active is None:
                 filter_active = sqldata.get_filterconfig(ctx.guild.id, ftype)[0].active
                 sqldata.update_filterconfig(ctx.guild.id, ftype, not filter_active)
