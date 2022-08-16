@@ -47,9 +47,18 @@ class Settings(commands.Cog):
         if not filter_type:
             filterconfig = sqldata.get_filterconfig(ctx.guild.id)
             active_filters = "\n".join(
-                [f"- {fi.filter_type.value}" for fi in filterconfig if fi.active])
+                    [f"- {fi.filter_type.value}" for fi in filterconfig if fi.active]
+                    )
+
             inactive_filters = "\n".join(
-                [f"- {fi.filter_type.value}" for fi in filterconfig if not fi.active])
+                    [f"- {fi.filter_type.value}" for fi in filterconfig if not fi.active]
+                    )
+
+            if not active_filters:
+                active_filters = "none"
+            if not inactive_filters:
+                inactive_filters = "none"
+
             embed = discord.Embed()
             embed.title = "Filters"
             embed.add_field(name="Active", value=active_filters)
