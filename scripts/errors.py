@@ -14,7 +14,7 @@ def missing_permissions(is_bot: bool):
     "This gets triggered when bot or client doesn't have correct permissions."
     def inner(
         ctx: commands.Context,
-        error: commands.BotMissingPermissions | commands.MissingPermissions
+        error: commands.BotMissingPermissions or commands.MissingPermissions
         ):
         if not ctx.guild:
             ctx.send("This command has to be called inside of a guild!")
