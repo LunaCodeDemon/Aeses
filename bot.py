@@ -5,10 +5,9 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
-import httpx
-from api.safebooru import SafebooruConnectionError, SafebooruNothingFound
 from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
+from scripts.errors import error_dictionary
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
@@ -60,36 +59,13 @@ async def on_member_update(_: discord.Member, after: discord.Member):
 @client.event
 async def on_command_error(ctx: commands.Context, error: BaseException):
     "Handles errors for every command."
-    try:
-        if isinstance(error, commands.CommandInvokeError):
-            error = error.original
-        raise error from None
-    # reply the invoker is missing permissions
-    except commands.MissingPermissions:
-        if not ctx.guild:
-            await ctx.send("This command has to be called inside of a guild!")
-        else:
-            await ctx.send(
-                "You are missing permissions to run this command.\n"
-                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-            )
-    except commands.BotMissingPermissions:
-        if not ctx.guild:
-            await ctx.send("This command has to be called inside of a guild!")
-        else:
-            await ctx.send(
-                "I do not have the right permissions to execute this command.\n"
-                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-            )
-    except SafebooruConnectionError:
-        await ctx.send("Something went wrong with the safebooru.org api.")
-    except SafebooruNothingFound:
-        await ctx.send(f"Couldn't find something for given tags. ({', '.join(list(error.tags))})")
-    except commands.MissingRequiredArgument:
-        await ctx.send_help(ctx.command)
-    except httpx.ReadTimeout as exc:
-        logging.warning("Bot got a timeout from %s", exc.request.url)
-    finally:
+    if isinstance(error, commands.CommandInvokeError):
+        error = error.original
+
+    exc_func = error_dictionary.get(error)
+    if exc_func:
+        exc_func(ctx, error)
+    else:
         logging.exception(error)
 
 EXTENSION_FOLDER = 'cogs'
