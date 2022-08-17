@@ -5,6 +5,7 @@ from http.client import HTTPException
 import os
 import discord
 from discord.ext import commands
+import httpx
 from api.safebooru import SafebooruConnectionError, SafebooruNothingFound
 from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
@@ -86,6 +87,8 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
         await ctx.send(f"Couldn't find something for given tags. ({', '.join(list(error.tags))})")
     except commands.MissingRequiredArgument:
         await ctx.send_help(ctx.command)
+    except httpx.ReadTimeout as exc:
+        logging.warning("Bot got a timeout from %s", exc.request.url)
     finally:
         logging.exception(error)
 
