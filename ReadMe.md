@@ -1,6 +1,6 @@
-[wiki-installation]: "https://github.com/ChinoCodeDemon/Aeses/wiki/Installation-(Self-Hosting)"
-[wiki-commands]: "https://github.com/ChinoCodeDemon/Aeses/wiki/Commands"
-[wiki-filters]: "https://github.com/ChinoCodeDemon/Aeses/wiki/Filters"
+[wiki-installation]: https://github.com/ChinoCodeDemon/Aeses/wiki/Installation-(Self-Hosting)
+[wiki-commands]: https://github.com/ChinoCodeDemon/Aeses/wiki/Commands
+[wiki-filters]: https://github.com/ChinoCodeDemon/Aeses/wiki/Filters
 
 # Aeses
 
