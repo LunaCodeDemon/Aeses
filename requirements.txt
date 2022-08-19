@@ -4,3 +4,4 @@ sqlalchemy
 httpx
 python-dotenv
 psycopg2-binary
+pyyaml

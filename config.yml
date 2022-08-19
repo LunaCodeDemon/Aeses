@@ -11,6 +11,22 @@ dialogs:
     response: "Set {mention} as logging channel."
   pokemon:
     on_fail: "Could not find pokemon {pokename}"
+emotes:
+  hug:
+    alone: "{myself} hugs alone, how lonely..."
+    with_target: "{myself} hugs {target}."
+  cry:
+    alone: "{myself} is crying."
+    with_target: "{myself} cries at {target}."
+  smile:
+    alone: "{myself} is happy and smiles."
+    with_target: "{myself} smiles at {target}."
+  smug:
+    alone: "{myself} is smugging."
+    with_target: "{myself} is smugging at {targeŧ}."
+  pat:
+    alone: "{myself} is patting herself, how sad..."
+    with_target: "{myself} is patting {target}. Cute!"
 exceptions:
   outside_of_guild: "This command has to be called inside of a guild!"
   missing_permissions: |-
