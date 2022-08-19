@@ -3,7 +3,7 @@ from discord import Embed
 from discord.ext import commands
 from api import pokeapi
 from api import safebooru
-from iniloader import config
+from configloader import config
 
 
 class Fun(commands.Cog):
@@ -25,7 +25,7 @@ class Fun(commands.Cog):
         # turn data into embed
         pokemon_embed = pokeapi.gen_pokemon_embed(pokemon_data)
         if not pokemon_embed:
-            await ctx.send(config['dialog_pokemon']['on_fail']
+            await ctx.send(config['dialogs']['pokemon']['on_fail']
                            .format(pokename=name))
             return
         await ctx.send(embed=pokemon_embed)

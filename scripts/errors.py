@@ -3,6 +3,7 @@ import logging
 import httpx
 from discord.ext import commands
 from api import safebooru
+from configloader import config
 
 
 def read_timeout(_: commands.Context, error: httpx.ReadTimeout):
@@ -15,33 +16,29 @@ def missing_permissions(is_bot: bool):
     def inner(
         ctx: commands.Context,
         error: commands.BotMissingPermissions or commands.MissingPermissions
-        ):
+    ):
         if not ctx.guild:
-            ctx.send("This command has to be called inside of a guild!")
+            ctx.send(config['exceptions']['outside_of_guild'])
             return
         if is_bot:
-            ctx.send(
-                "I do not have the right permissions to execute this command.\n"
-                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-            )
+            ctx.send(config['exceptions']['bot_missing_permissions']
+                     .format(permissions=', '.join(error.missing_perms)))
         else:
-            ctx.send(
-                "You are missing permissions to run this command.\n"
-                f"Permissions that are missing: ({', '.join(error.missing_perms)})"
-            )
+            ctx.send(config['exceptions']['missing_permissions']
+                     .format(permissions=', '.join(error.missing_perms)))
 
     return inner
 
 
 def safebooru_connection_error(ctx: commands.Context, _: safebooru.SafebooruConnectionError):
     "This is triggered when the connection to safebooru fails."
-    ctx.send("Something went wrong with the safebooru.org api.")
+    ctx.send(config['exceptions']['safebooru_connection_error'])
 
 
 def safebooru_nothing_found(ctx: commands.Context, error: safebooru.SafebooruNothingFound):
     "This is triggerd if nothing is found on safebooru query."
-    ctx.send(
-        f"Couldn't find something for given tags. ({', '.join(list(error.tags))})")
+    ctx.send(config['exceptions']['safebooru_nothing_found']
+             .format(tags=', '.join(list(error.tags))))
 
 
 def missing_required_argument(ctx: commands.Context, _: commands.MissingRequiredArgument):

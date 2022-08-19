@@ -2,7 +2,7 @@
 from http.client import HTTPException
 import discord
 from discord.ext import commands
-from iniloader import config
+from configloader import config
 
 
 class Moderation(commands.Cog):
@@ -18,9 +18,9 @@ class Moderation(commands.Cog):
         "This command kicks a member."
         try:
             await member.kick(reason=reason)
-            await ctx.send(config['dialog_kick']['response'].format(mention=member.mention))
+            await ctx.send(config['dialogs']['kick']['response'].format(mention=member.mention))
         except HTTPException:
-            await ctx.send(config['dialog_kick']['on_fail'].format(mention=member.mention))
+            await ctx.send(config['dialogs']['kick']['on_fail'].format(mention=member.mention))
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
@@ -30,9 +30,9 @@ class Moderation(commands.Cog):
 
         try:
             await member.ban(reason=reason)
-            await ctx.send(config['dialog_ban']['response'].format(mention=member.mention))
+            await ctx.send(config['dialogs']['ban']['response'].format(mention=member.mention))
         except HTTPException:
-            await ctx.send(config['dialog_ban']['on_fail'].format(mention=member.mention))
+            await ctx.send(config['dialogs']['ban']['on_fail'].format(mention=member.mention))
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -45,7 +45,7 @@ class Moderation(commands.Cog):
             set_nsfw = not channel.is_nsfw()
 
         await channel.edit(nsfw=set_nsfw)
-        await ctx.send(config['dialog_nsfw']['response']
+        await ctx.send(config['dialogs']['nsfw']['response']
                        .format(channel=channel.mention, status=channel.is_nsfw()))
 
 

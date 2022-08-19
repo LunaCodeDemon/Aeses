@@ -1,0 +1,25 @@
+dialogs:
+  kick:
+    response: "{mention} has been kicked."
+    on_fail: "Kicking failed."
+  ban:
+    response: "{mention} has been banned."
+    on_fail: "Banning failed."
+  nsfw:
+    response: "NSFW marking in {channel} is set to {status}"
+  logchannel:
+    response: "Set {mention} as logging channel."
+  pokemon:
+    on_fail: "Could not find pokemon {pokename}"
+exceptions:
+  outside_of_guild: "This command has to be called inside of a guild!"
+  missing_permissions: |-
+    You are missing permissions to run this command.
+    Permissions that are missing: ({permissions})
+  bot_missing_permissions: |-
+    You are missing permissions to run this command.
+    Permissions that are missing: ({permissions})
+  safebooru_connection_error: |-
+    Something went wrong with the safebooru.org api.
+  safebooru_nothing_found: |-
+    Couldn't find something for given tags. ({tags})
