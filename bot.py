@@ -8,7 +8,6 @@ from discord.ext import commands
 from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
-import asyncio
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
