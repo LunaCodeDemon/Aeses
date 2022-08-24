@@ -1,5 +1,6 @@
 "A collections of functions that reply to errors."
 import logging
+from typing import Union
 import httpx
 from discord.ext import commands
 from api import safebooru
@@ -15,7 +16,7 @@ def missing_permissions(is_bot: bool):
     "This gets triggered when bot or client doesn't have correct permissions."
     def inner(
         ctx: commands.Context,
-        error: commands.BotMissingPermissions or commands.MissingPermissions
+        error: Union[commands.BotMissingPermissions, commands.MissingPermissions]
     ):
         if not ctx.guild:
             ctx.send(config['exceptions']['outside_of_guild'])
