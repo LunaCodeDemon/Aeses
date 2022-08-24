@@ -2,7 +2,6 @@
 from random import choice
 import functools
 import discord
-from discord import app_commands
 from discord.ext import commands
 from configloader import config, emote_links
 
