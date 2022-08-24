@@ -1,10 +1,13 @@
 # development enviroment (testing, vscode, start script)
 .vscode
 __pycache__
-start.sh
 .pytest_cache
 .devcontainer
 
 # runtime output (databases, log files)
 *.db
 *.log
+
+# configurations
+.env
+start.sh
