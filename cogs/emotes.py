@@ -2,6 +2,7 @@
 from random import choice
 import functools
 import discord
+from discord import app_commands
 from discord.ext import commands
 from configloader import config, emote_links
 
@@ -33,29 +34,29 @@ class Emotes(commands.Cog):
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
 
-    @commands.command()
+    @commands.hybrid_command()
     @emoji_command
-    def hug(self, ctx, target: discord.Member = None):
+    def hug(self, ctx: commands.Context, target: discord.Member = None):
         "Hug someone."
 
-    @commands.command()
+    @commands.hybrid_command()
     @emoji_command
-    def cry(self, ctx, target: discord.Member = None):
+    def cry(self, ctx: commands.Context, target: discord.Member = None):
         "For the sad times."
 
-    @commands.command()
+    @commands.hybrid_command()
     @emoji_command
-    def smile(self, ctx, target: discord.Member = None):
+    def smile(self, ctx: commands.Context, target: discord.Member = None):
         "For happy times."
 
-    @commands.command()
+    @commands.hybrid_command()
     @emoji_command
-    def smug(self, ctx, target: discord.Member = None):
+    def smug(self, ctx: commands.Context, target: discord.Member = None):
         "surely something weird is happening."
 
-    @commands.command()
+    @commands.hybrid_command()
     @emoji_command
-    def pat(self, ctx, target: discord.Member = None):
+    def pat(self, ctx: commands.Context, target: discord.Member = None):
         "Nice pats."
 
 

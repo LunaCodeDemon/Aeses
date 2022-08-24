@@ -16,6 +16,9 @@ class AesesBot(commands.Bot):
             if file.endswith('.py') and file != "__init__.py":
                 module_path = f"{folder}.{os.path.splitext(file)[0]}"
                 await client.load_extension(module_path)
+    
+    async def setup_hook(self) -> None:
+        await client.tree.sync()
 
 
 client = AesesBot(command_prefix="!", intents=discord.Intents.all())

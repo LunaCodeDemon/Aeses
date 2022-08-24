@@ -1,5 +1,6 @@
 "This Cog lets server moderators change settings for the guild."
 import discord
+from discord import app_commands
 from discord.ext import commands
 # from iniloader import config
 
@@ -30,8 +31,12 @@ class Settings(commands.Cog):
     #     else:
     #         await ctx.send_help("logchannel")
 
-    @commands.command(aliases=["filter"])
+    @commands.hybrid_command(aliases=["filter"])
     @commands.has_permissions(administrator=True)
+    @app_commands.choices(filter_type=[
+        app_commands.Choice(name="Emoji in Names", value="emona"),
+        app_commands.Choice(name="Links", value="links")
+        ])
     async def filterconf(self, ctx: commands.Context, filter_type:str = None, active:bool = None):
         """
             Set which filter type to enable,

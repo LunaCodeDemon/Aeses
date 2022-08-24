@@ -15,7 +15,7 @@ class Utility(commands.Cog):
         client.help_command = HelpCommand()
         client.help_command.cog = self
 
-    @commands.command()
+    @commands.hybrid_command()
     async def info(self, ctx: commands.Context):
         "This command shows information about the bot."
         embed_message = discord.Embed()
