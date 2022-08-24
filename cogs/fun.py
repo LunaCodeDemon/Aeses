@@ -44,6 +44,6 @@ class Fun(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(client: commands.Bot):
+async def setup(client: commands.Bot):
     "Setup function for Fun command collection."
-    client.add_cog(Fun(client))
+    await client.add_cog(Fun(client))

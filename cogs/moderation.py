@@ -49,6 +49,6 @@ class Moderation(commands.Cog):
                        .format(channel=channel.mention, status=channel.is_nsfw()))
 
 
-def setup(client: commands.Bot):
+async def setup(client: commands.Bot):
     "Setup function for the moderation extention."
-    client.add_cog(Moderation(client))
+    await client.add_cog(Moderation(client))

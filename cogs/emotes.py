@@ -59,6 +59,6 @@ class Emotes(commands.Cog):
         "Nice pats."
 
 
-def setup(client: commands.Bot):
+async def setup(client: commands.Bot):
     "setup function of this cog."
-    client.add_cog(Emotes(client))
+    await client.add_cog(Emotes(client))

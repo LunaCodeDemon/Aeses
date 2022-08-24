@@ -9,7 +9,16 @@ from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
 
-client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+class AesesBot(commands.Bot):
+    async def load_modules_from_folder(self, folder: str):
+        "Loads modules from a folder."
+        for file in os.listdir(folder):
+            if file.endswith('.py') and file != "__init__.py":
+                module_path = f"{folder}.{os.path.splitext(file)[0]}"
+                await client.load_extension(module_path)
+
+
+client = AesesBot(command_prefix="!", intents=discord.Intents.all())
 
 
 @client.event
@@ -68,8 +77,4 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
     else:
         logging.exception(error)
 
-EXTENSION_FOLDER = 'cogs'
-for file in os.listdir(EXTENSION_FOLDER):
-    if file.endswith('.py') and file != "__init__.py":
-        module_path = f"{EXTENSION_FOLDER}.{os.path.splitext(file)[0]}"
-        client.load_extension(module_path)
+

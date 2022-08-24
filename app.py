@@ -4,6 +4,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from bot import client
+import asyncio
 
 load_dotenv()
 
@@ -16,6 +17,9 @@ def main():
         logging.error(
             "Unable to login into Discord, please set DISCORD_TOKEN.")
         return
+
+    EXTENSION_FOLDER = 'cogs'
+    asyncio.run(client.load_modules_from_folder(EXTENSION_FOLDER))
     client.run(DISCORD_TOKEN)
 
 

@@ -27,6 +27,6 @@ class Utility(commands.Cog):
         await ctx.send(embed=embed_message)
 
 
-def setup(client: commands.Bot):
+async def setup(client: commands.Bot):
     "Setup function for 'info' cog"
-    client.add_cog(Utility(client))
+    await client.add_cog(Utility(client))

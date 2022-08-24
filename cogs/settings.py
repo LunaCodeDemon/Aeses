@@ -80,6 +80,6 @@ class Settings(commands.Cog):
         except ValueError:
             await ctx.send("Invalid filter found in arguments")
 
-def setup(client: commands.Bot):
+async def setup(client: commands.Bot):
     "Setup function for settings COG"
-    client.add_cog(Settings(client))
+    await client.add_cog(Settings(client))
