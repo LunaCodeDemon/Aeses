@@ -84,5 +84,6 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
 
 @client.event
 async def on_error(error: BaseException):
+    "log errors"
     logging.exception(error)
     raise error

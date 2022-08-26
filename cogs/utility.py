@@ -14,7 +14,7 @@ class Utility(commands.Cog):
         self.client = client
         client.help_command = HelpCommand()
         client.help_command.cog = self
-    
+
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         "Initialised tasks"
