@@ -49,6 +49,16 @@ class Moderation(commands.Cog):
         await ctx.send(config['dialogs']['nsfw']['response']
                        .format(channel=channel.mention, status=channel.is_nsfw()))
 
+    @commands.hybrid_command(aliases=["slow"])
+    @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def slowdown(self, ctx: commands.Context, seconds: int):
+        "Slows down the chat. (0 disables this)"
+        if seconds < 0:
+            await ctx.send("This command doesn't work with negative numbers")
+            return
+        await ctx.channel.edit(slowmode_delay=seconds)
+        await ctx.send("Successfully changed slowmode settings.")
 
 async def setup(client: commands.Bot):
     "Setup function for the moderation extention."
