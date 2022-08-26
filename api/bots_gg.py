@@ -2,7 +2,7 @@
 import os
 import httpx
 
-BOTS_GG_TOKEN = os.environ("BOTS_GG_TOKEN")
+BOTS_GG_TOKEN = os.environ.get("BOTS_GG_TOKEN")
 BOTS_GG_URL = "https://discord.bots.gg/api/v1"
 
 def update_statistics(client_id: str, guild_count: int):
