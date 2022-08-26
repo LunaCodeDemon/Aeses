@@ -11,7 +11,7 @@ load_dotenv()
 discord_token = os.environ.get('DISCORD_TOKEN')
 
 
-def main():
+async def main():
     "Startpoint of the script."
     if not discord_token:
         logging.error(
@@ -19,9 +19,10 @@ def main():
         return
 
     extension_folder = 'cogs'
-    asyncio.run(client.load_modules_from_folder(extension_folder))
-    client.run(discord_token)
+    await client.load_modules_from_folder(extension_folder)
+    async with client:
+        await client.start(discord_token)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

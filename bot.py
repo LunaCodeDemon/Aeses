@@ -9,6 +9,7 @@ from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
 
+
 class AesesBot(commands.Bot):
     "Custom class for Aeses bot"
     async def load_modules_from_folder(self, folder: str):
@@ -21,14 +22,12 @@ class AesesBot(commands.Bot):
     async def setup_hook(self) -> None:
         await client.tree.sync()
 
+    async def on_ready(self):
+        "This event will be triggered when the client is ready to use."
+        print(f"Discord client logged in as {client.user.name}")
+
 
 client = AesesBot(command_prefix="!", intents=discord.Intents.all())
-
-
-@client.event
-async def on_ready():
-    "This event will be triggered when the client is ready to use."
-    print(f"Discord client logged in as {client.user.name}")
 
 
 @client.event
@@ -81,3 +80,9 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
     else:
         logging.exception(error)
         raise error
+
+
+@client.event
+async def on_error(error: BaseException):
+    logging.exception(error)
+    raise error

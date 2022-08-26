@@ -14,6 +14,17 @@ class Utility(commands.Cog):
         self.client = client
         client.help_command = HelpCommand()
         client.help_command.cog = self
+    
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        "Initialised tasks"
+        # pylint: disable=no-member
+        self.update_bot_statistics.start()
+
+    async def cog_unload(self) -> None:
+        "Cancels tasks"
+        # pylint: disable=no-member
+        self.update_bot_statistics.cancel()
 
     @commands.hybrid_command()
     async def info(self, ctx: commands.Context):
@@ -30,7 +41,7 @@ class Utility(commands.Cog):
     async def update_bot_statistics(self):
         "Updates statistics about the bot."
         if self.client.application_id:
-            bots_gg.update_statistics(self.client.application_id, self.client.guilds.count())
+            bots_gg.update_statistics(self.client.application_id, len(self.client.guilds))
 
 
 async def setup(client: commands.Bot):
