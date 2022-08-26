@@ -1,7 +1,7 @@
 "Core command group (commands ex. info, help)"
 import discord
-from discord.ext import commands
-
+from discord.ext import commands, tasks
+from api import bots_gg
 
 class HelpCommand(commands.MinimalHelpCommand):
     "Help Command for this bot, might add some custom methods."
@@ -25,6 +25,12 @@ class Utility(commands.Cog):
         embed_message.add_field(name="Framework", value="discord.py")
         embed_message.set_image(url=self.client.user.avatar_url)
         await ctx.send(embed=embed_message)
+
+    @tasks.loop(seconds=5)
+    async def update_bot_statistics(self):
+        "Updates statistics about the bot."
+        if self.client.application_id:
+            bots_gg.update_statistics(self.client.application_id, self.client.guilds.count())
 
 
 async def setup(client: commands.Bot):
