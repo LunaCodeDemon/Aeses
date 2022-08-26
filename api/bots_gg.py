@@ -1,4 +1,5 @@
 "Module that will interact with bots.gg"
+import logging
 import os
 import httpx
 
@@ -9,6 +10,8 @@ def update_statistics(client_id: str, guild_count: int):
     "updates statistics in bots.gg"
     if not BOTS_GG_TOKEN:
         return # should be ignored without token
-    httpx.post(BOTS_GG_URL + f"/bots/{client_id}/stats",
-        auth=BOTS_GG_TOKEN,
-        json={"guildCount": guild_count})
+    response =httpx.post(BOTS_GG_URL + f"/bots/{client_id}/stats",
+        json={"guildCount": guild_count},
+        headers={"Authorization": BOTS_GG_TOKEN})
+    if response.status_code != 200:
+        logging.warning(response.content)
