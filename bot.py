@@ -10,13 +10,14 @@ from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
 
 class AesesBot(commands.Bot):
+    "Custom class for Aeses bot"
     async def load_modules_from_folder(self, folder: str):
         "Loads modules from a folder."
         for file in os.listdir(folder):
             if file.endswith('.py') and file != "__init__.py":
                 module_path = f"{folder}.{os.path.splitext(file)[0]}"
                 await client.load_extension(module_path)
-    
+
     async def setup_hook(self) -> None:
         await client.tree.sync()
 

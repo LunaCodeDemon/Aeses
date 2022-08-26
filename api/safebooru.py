@@ -1,7 +1,6 @@
 "This module interfaces with safebooru.org"
 from typing import List, NamedTuple
 import xml.etree.ElementTree as ET
-from functools import lru_cache
 from random import randint
 import httpx
 
@@ -36,7 +35,12 @@ class SafebooruPost(NamedTuple):
 def count(tags: List[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
-                       params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': ' '.join(tags), 's': "post"})
+        params={
+            **SAFEBOORU_DEFAULTS,
+            'limit': 0,
+            'tags': ' '.join(tags) if tags else None,
+            's': "post"
+            })
     if result.status_code != 200:
         raise SafebooruConnectionError
     # read retrieved data
@@ -51,7 +55,11 @@ async def random_post(tags: List[str] = None) -> SafebooruPost:
         raise SafebooruNothingFound(tags=tags)
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': ' '.join(tags), 's': "post", 'pid': rng})
+        params={**SAFEBOORU_DEFAULTS,
+        'limit': 1,
+        'tags': ' '.join(tags) if tags else None,
+        's': "post",
+        'pid': rng})
     if result.status_code != 200:
         raise SafebooruConnectionError
     tree = ET.fromstring(result.text)
