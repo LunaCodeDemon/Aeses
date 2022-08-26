@@ -34,17 +34,18 @@ class Moderation(commands.Cog):
         except HTTPException:
             await ctx.send(config['dialogs']['ban']['on_fail'].format(mention=member.mention))
 
+    # don't know if i should turn this into hybrid command
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def nsfw(self, ctx: commands.Context, set_nsfw: bool = None):
+    async def nsfw(self, ctx: commands.Context, static_value: bool = None):
         "Toggle the channel to nsfw mode."
         channel: discord.TextChannel = ctx.channel
 
-        if set_nsfw is None:
-            set_nsfw = not channel.is_nsfw()
+        if static_value is None:
+            static_value = not channel.is_nsfw()
 
-        await channel.edit(nsfw=set_nsfw)
+        await channel.edit(nsfw=static_value)
         await ctx.send(config['dialogs']['nsfw']['response']
                        .format(channel=channel.mention, status=channel.is_nsfw()))
 

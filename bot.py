@@ -79,5 +79,4 @@ async def on_command_error(ctx: commands.Context, error: BaseException):
         exc_func(ctx, error)
     else:
         logging.exception(error)
-
-
+        raise error

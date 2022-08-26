@@ -1,5 +1,5 @@
 "Module for fun commands."
-from typing import List, Tuple
+import re
 from discord import Embed
 from discord.ext import commands
 from api import pokeapi
@@ -14,7 +14,7 @@ class Fun(commands.Cog):
         "Initialiser for 'Fun' cog."
         self.client = client
 
-    @commands.command()
+    @commands.hybrid_command()
     async def pokemon(self, ctx: commands.Context, *, name: str = None):
         "Searches for a pokemon."
         # grab data from pokeapi
@@ -31,10 +31,10 @@ class Fun(commands.Cog):
             return
         await ctx.send(embed=pokemon_embed)
 
-    @commands.command()
-    async def booru(self, ctx: commands.Context, *tags: str):
+    @commands.hybrid_command()
+    async def booru(self, ctx: commands.Context, *, tags: str):
         "Get image from safebooru.org"
-        post = await safebooru.random_post(tags)
+        post = await safebooru.random_post(re.split(r"[\s,+]+", tags))
 
         embed = Embed()
         embed.title = f"Post: {post.post_id}"

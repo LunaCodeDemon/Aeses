@@ -1,5 +1,5 @@
 "This module interfaces with safebooru.org"
-from typing import Tuple, NamedTuple
+from typing import List, NamedTuple
 import xml.etree.ElementTree as ET
 from functools import lru_cache
 from random import randint
@@ -12,9 +12,9 @@ class SafebooruConnectionError(Exception):
 
 class SafebooruNothingFound(Exception):
     "Couldn't find anything for given tags."
-    tags: Tuple[str]
+    tags: List[str]
 
-    def __init__(self, tags: Tuple[str]) -> None:
+    def __init__(self, tags: List[str]) -> None:
         "set the tags"
         super().__init__(self.__doc__)
         self.tags = tags
@@ -30,13 +30,13 @@ class SafebooruPost(NamedTuple):
     file_url: str
     post_url: str
     has_comments: bool
+    tags: str
 
 
-@lru_cache(maxsize=3)
-def count(tags: Tuple[str] = None) -> int:
+def count(tags: List[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
-                       params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': tags, 's': "post"})
+                       params={**SAFEBOORU_DEFAULTS, 'limit': 0, 'tags': ' '.join(tags), 's': "post"})
     if result.status_code != 200:
         raise SafebooruConnectionError
     # read retrieved data
@@ -44,22 +44,22 @@ def count(tags: Tuple[str] = None) -> int:
     return int(tree.attrib['count'])
 
 
-async def random_post(tags: Tuple[str] = None) -> SafebooruPost:
+async def random_post(tags: List[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     available = count(tags)-1
     if available < 0:
         raise SafebooruNothingFound(tags=tags)
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': tags, 's': "post", 'pid': rng})
+        params={**SAFEBOORU_DEFAULTS, 'limit': 1, 'tags': ' '.join(tags), 's': "post", 'pid': rng})
     if result.status_code != 200:
         raise SafebooruConnectionError
-    # read retrived data
     tree = ET.fromstring(result.text)
     post_data = tree[0].attrib
     return SafebooruPost(
         post_id=int(post_data['id']),
         file_url=post_data['file_url'],
         post_url=f"https://safebooru.org/index.php?page=post&s=view&id={post_data['id']}",
-        has_comments=post_data['has_comments']
+        has_comments=post_data['has_comments'],
+        tags=post_data['tags']
     )
