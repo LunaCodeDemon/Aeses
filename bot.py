@@ -3,7 +3,9 @@
 import logging
 from http.client import HTTPException
 import os
+from typing import List
 import discord
+from discord import app_commands
 from discord.ext import commands
 from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
@@ -25,6 +27,11 @@ class AesesBot(commands.Bot):
     async def on_ready(self):
         "This event will be triggered when the client is ready to use."
         print(f"Discord client logged in as {client.user.name}")
+
+    def add_context_menus(self, menus: List[app_commands.ContextMenu]):
+        "Adds an array of context menus"
+        for menu in menus:
+            self.tree.add_command(menu)
 
 
 client = AesesBot(command_prefix="!", intents=discord.Intents.all())
