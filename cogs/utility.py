@@ -70,9 +70,24 @@ class Utility(commands.Cog):
         embed_message.title = self.client.user.name
         embed_message.add_field(
             name="Github Repo", value="https://github.com/ChinoCodeDemon/Aeses")
+        embed_message.add_field(
+            name="Support Server", value="https://discord.gg/StgE5Z4bFB"
+        )
         embed_message.add_field(name="Framework", value="discord.py")
         embed_message.set_image(url=self.client.user.avatar.url)
         await ctx.send(embed=embed_message)
+
+    @commands.hybrid_command()
+    async def invite(self, ctx: commands.Context):
+        "Sends back an invite link for the bot."
+        # pylint: disable=line-too-long
+        link = f"https://discord.com/api/oauth2/authorize?client_id={self.client.application_id}&permissions=2281712656&scope=bot"
+        embed = discord.Embed(
+            title="Invite",
+            # pylint: disable=line-too-long
+            description=f"You can use this link this link to invite the bot into your server:\n{link}"
+        )
+        await ctx.send(embed=embed)
 
     @commands.hybrid_command()
     async def avatar(self, ctx: commands.Context, user: discord.User = None):
