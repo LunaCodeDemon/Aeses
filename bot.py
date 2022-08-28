@@ -13,6 +13,7 @@ from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
 
 DEFAULT_PREFIX = "!"
+ACTIVITY_OVERWRITE = os.environ.get("ACTIVITY_OVERWRITE")
 
 activities: List[Callable[[discord.Client], None]] = [
     lambda client: discord.Activity(
@@ -48,7 +49,14 @@ class AesesBot(commands.Bot):
     @tasks.loop(minutes=15)
     async def loop_status(self):
         "Loops through few possible statuses"
-        await self.change_presence(activity=choice(activities)(self))
+        if not ACTIVITY_OVERWRITE:
+            await self.change_presence(activity=choice(activities)(self))
+        else:
+            await self.change_presence(activity=
+                discord.Activity(
+                    type=discord.ActivityType.custom,
+                    name=ACTIVITY_OVERWRITE
+                    ))
 
     @loop_status.before_loop
     async def before_loop_status(self):
