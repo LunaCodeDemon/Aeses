@@ -34,8 +34,17 @@ class Utility(commands.Cog):
         embed_message.add_field(
             name="Github Repo", value="https://github.com/ChinoCodeDemon/Aeses")
         embed_message.add_field(name="Framework", value="discord.py")
-        embed_message.set_image(url=self.client.user.avatar_url)
+        embed_message.set_image(url=self.client.user.avatar.url)
         await ctx.send(embed=embed_message)
+
+    @commands.hybrid_command()
+    async def avatar(self, ctx: commands.Context, user: discord.User = None):
+        "Give a better view on avatars"
+        if not user:
+            user = ctx.author
+        embed = discord.Embed(title=user.name)
+        embed.set_image(url=user.avatar.url)
+        await ctx.send(embed=embed)
 
     @tasks.loop(seconds=5)
     async def update_bot_statistics(self):
