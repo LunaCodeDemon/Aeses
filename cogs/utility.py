@@ -1,9 +1,40 @@
 "Core command group (commands ex. info, help)"
 import discord
+from discord import app_commands
 from discord.ext import commands, tasks
 from api import bots_gg
+from bot import AesesBot
 
 TIMEFORMAT = "%m/%d/%Y, %H:%M:%S"
+
+async def generate_whois_embed(member: discord.Member):
+    "Generate a full whois embed for the given member"
+    embed = discord.Embed(title=f"Whois of {member.display_name}")
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.add_field(name="Username", value=member.name)
+    embed.add_field(name="Roles", value=", ".join([r.mention for r in member.roles]))
+    embed.add_field(name="Creation", value=member.created_at.strftime(TIMEFORMAT), inline=False)
+    embed.add_field(name="Joined", value=member.joined_at.strftime(TIMEFORMAT), inline=False)
+    return embed
+
+async def generate_avatar_embed(user: discord.User):
+    "Generate an embed containing the avatar of the user"
+    embed = discord.Embed(title=user.name)
+    embed.set_image(url=user.avatar.url)
+    return embed
+
+@app_commands.context_menu(name="Whois")
+async def menu_whois(interaction: discord.Interaction, member: discord.Member):
+    "Get a whois over contex menu"
+    embed = await generate_whois_embed(member)
+    interaction.response.send_message(embed=embed)
+
+@app_commands.context_menu(name="Avatar")
+async def menu_avatar(interaction: discord.Interaction, member: discord.Member):
+    "Get a whois over contex menu"
+    embed = await generate_whois_embed(member)
+    interaction.response.send_message(embed=embed)
+
 
 class HelpCommand(commands.MinimalHelpCommand):
     "Help Command for this bot, might add some custom methods."
@@ -12,10 +43,14 @@ class HelpCommand(commands.MinimalHelpCommand):
 class Utility(commands.Cog):
     "Basic functionalities of the bot, like information."
 
-    def __init__(self, client: commands.Bot) -> None:
+    def __init__(self, client: AesesBot) -> None:
         self.client = client
         client.help_command = HelpCommand()
         client.help_command.cog = self
+        # client.add_context_menus([
+        #     menu_whois,
+        #     menu_avatar
+        # ])
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -44,8 +79,7 @@ class Utility(commands.Cog):
         "Give a better view on avatars"
         if not user:
             user = ctx.author
-        embed = discord.Embed(title=user.name)
-        embed.set_image(url=user.avatar.url)
+        embed = await generate_avatar_embed(user)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command()
@@ -54,12 +88,7 @@ class Utility(commands.Cog):
         "Gives you quick info about a member or yourself, useful for moderation."
         if not member:
             member = ctx.author
-        embed = discord.Embed(title=f"Whois of {member.display_name}")
-        embed.set_thumbnail(url=member.display_avatar.url)
-        embed.add_field(name="Username", value=member.name)
-        embed.add_field(name="Roles", value=", ".join([r.mention for r in member.roles]))
-        embed.add_field(name="Creation", value=member.created_at.strftime(TIMEFORMAT), inline=False)
-        embed.add_field(name="Joined", value=member.joined_at.strftime(TIMEFORMAT), inline=False)
+        embed = await generate_whois_embed(member)
         await ctx.send(embed=embed)
 
     @tasks.loop(seconds=5)
