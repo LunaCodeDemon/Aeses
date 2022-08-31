@@ -27,6 +27,30 @@ emotes:
   pat:
     alone: "{myself} is patting herself, how sad..."
     with_target: "{myself} is patting {target}. Cute!"
+  blush: 
+    alone: "{myself} is blushing, very cute!"
+    with_target: "{myself} is blushing at {target}, how adorable!"
+  boop:
+    alone: "{myself} boops."
+    with_target: "{myself} boops {target}."
+  highfive:
+    alone: "{myself} does a highfive with the wall."
+    with_target: "{myself} does a highfive with {target}"
+  kiss:
+    alone: "{myself} is kissing a doll."
+    with_target: "{myself} is kissing {target}."
+  nom:
+    alone: "{myself} noms on bread."
+    with_target: "{myself} noms on {target}"
+  stare:
+    alone: "{myself} stares"
+    with_target: "{myself} stares at {target}"
+  wave:
+    alone: "{myself} waves."
+    with_target: "{target}, {myself} waves at you."
+  slap:
+    alone: "{myself} slaps themself"
+    with_target: "{myself} slaps {target}"
 exceptions:
   outside_of_guild: "This command has to be called inside of a guild!"
   missing_permissions: |-

@@ -111,6 +111,46 @@ class Emotes(commands.Cog):
     def pat(self, ctx: commands.Context, target: discord.Member = None):
         "Nice pats."
 
+    @commands.hybrid_command()
+    @emoji_command
+    def blush(self, ctx: commands.Context, target: discord.Member = None):
+        "Do a blush"
+
+    @commands.hybrid_command()
+    @emoji_command
+    def boop(self, ctx: commands.Context, target: discord.Member = None):
+        "Boop someone"
+
+    @commands.hybrid_command()
+    @emoji_command
+    def highfive(self, ctx: commands.Context, target: discord.Member = None):
+        "Highfive someone"
+
+    @commands.hybrid_command()
+    @emoji_command
+    def kiss(self, ctx: commands.Context, target: discord.Member = None):
+        "Kiss someone"
+
+    @commands.hybrid_command()
+    @emoji_command
+    def nom(self, ctx: commands.Context, target: discord.Member = None):
+        "Nom someone"
+
+    @commands.hybrid_command()
+    @emoji_command
+    def stare(self, ctx: commands.Context, target: discord.Member = None):
+        "Stareing..."
+
+    @commands.hybrid_command()
+    @emoji_command
+    def wave(self, ctx: commands.Context, target: discord.Member = None):
+        "Waving.."
+
+    @commands.hybrid_command()
+    @emoji_command
+    def slap(self, ctx: commands.Context, target: discord.Member = None):
+        "Slap someone"
+
 
 async def setup(client: commands.Bot):
     "setup function of this cog."
