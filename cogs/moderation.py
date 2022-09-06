@@ -35,7 +35,7 @@ class Moderation(commands.Cog):
             await ctx.send(config['dialogs']['ban']['on_fail'].format(mention=member.mention))
 
     # don't know if i should turn this into hybrid command
-    @commands.command()
+    @commands.hybrid_command()
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
     async def nsfw(self, ctx: commands.Context, static_value: bool = None):
