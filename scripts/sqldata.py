@@ -25,6 +25,7 @@ class LogType(Enum):
 
 @dataclass
 class LoggingChannel:
+    "Log channel info"
     guild_id: int
     channel_id: int
     logtype: LogType
@@ -40,21 +41,26 @@ def create_table_logchannel():
                  logtype varchar(15));"""))
 
 
-def get_logchannel(guild_id: int, logtype: LogType) -> Optional[LoggingChannel]:
+def get_logchannel(guild_id: int, logtype: LogType = None) -> Optional[List[LoggingChannel]]:
     "Get the log channel of the guild."
+    query = """SELECT channel_id, logtype FROM logchannels 
+                 WHERE guild_id = :guild_id"""
+    ltype = None
+    if logtype:
+        query += "\nAND logtype = :logtype"
+        ltype = logtype.value
     channel_id: Optional[int] = None
     with engine.connect() as conn:
         result = conn.execute(
-            text("""SELECT channel_id FROM logchannels 
-                 WHERE guild_id = :guild_id
-                 AND logtype = :logtype"""),
-            [{"guild_id": guild_id, "logtype": logtype.value}]
-        ).first()
-        channel_id = None if not result else LoggingChannel(
-            guild_id,
-            result[0],
-            logtype
+            text(query),
+            [{"guild_id": guild_id, "logtype": ltype}]
         )
+        channel_id = None if not result else [LoggingChannel(
+            guild_id,
+            logchannel[0],
+            LogType(logchannel[1])
+        ) for logchannel in result
+        ]
     return channel_id
 
 
@@ -168,4 +174,4 @@ def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
 
 
 create_table_filterconfig()
-# create_table_logchannel()
+create_table_logchannel()

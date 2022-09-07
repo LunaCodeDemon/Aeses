@@ -10,3 +10,11 @@ async def create_welcome_embed(member: discord.Member, text: str):
                              guild=member.guild.name
                          )
                          )
+
+
+async def create_moderation_embed(user: discord.User, action: str, reason: str):
+    "Creates an embed for moderation stuff."
+    return discord.Embed(
+        title=f"[{action}]: {user.name}",
+        description=reason
+    )
