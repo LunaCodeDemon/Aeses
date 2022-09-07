@@ -6,7 +6,7 @@ import discord
 from discord import app_commands
 # pylint: disable=unused-import
 from discord.ext import commands, tasks
-from scripts.welcome_messages import create_welcome_embed
+from scripts.logmessagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
 
 
@@ -96,12 +96,43 @@ class Automation(commands.Cog):
 
         await channel.send(embed=embed)
 
-    #     text = "Welcome {member} to our nice corner."
-    #     embed = await create_welcome_embed(member, text)
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        "React when a member leaves or gets kicked"
+        audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(limit=1).__anext__()
 
-    #     channel.send(embed=embed)
+        # TODO leave message
+
+        if audit_entry.target.id != member.id:
+            return
+
+        if audit_entry.action == discord.AuditLogAction.kick:
+            kick_log_channel_data = sqldata.get_logchannel(
+                member.guild.id, sqldata.LogType.MODERATION)
+            if kick_log_channel_data:
+                kick_log_channel = member.guild.get_channel(
+                    kick_log_channel_data[0].channel_id)
+                embed = await create_moderation_embed(member, "kick",
+                                                      audit_entry.reason or "No reason given")
+                await kick_log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild: discord.Guild, user: discord.User):
+        "React on ban."
+        reason = "No reason found"
+        audit_entry: discord.AuditLogEntry = await guild.audit_logs(limit=1).__anext__()
+        if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:
+            reason = audit_entry.reason or "No reason given"
+
+        ban_log_channel_data = sqldata.get_logchannel(
+            guild.id, sqldata.LogType.MODERATION)
+        if ban_log_channel_data:
+            ban_log_channel = guild.get_channel(
+                ban_log_channel_data[0].channel_id)
+            embed = await create_moderation_embed(user, "ban", reason)
+            await ban_log_channel.send(embed=embed)
 
 
 async def setup(client: commands.Bot):
     "The usual setup function."
-    client.add_cog(Automation(client))
+    await client.add_cog(Automation(client))
