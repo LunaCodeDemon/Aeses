@@ -43,9 +43,9 @@ class Automation(commands.Cog):
         "Command group of log functions"
         await ctx.send_help('log')
 
-    # FIXME check for permission
     @log.command(name="add")
     @commands.guild_only()
+    @commands.has_permissions(administrator=True)
     @app_commands.choices(
         logtype=[
             app_commands.Choice(name="Welcome messages",
