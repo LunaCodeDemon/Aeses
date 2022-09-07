@@ -36,8 +36,8 @@ class Settings(commands.Cog):
     @app_commands.choices(filter_type=[
         app_commands.Choice(name="Emoji in Names", value="emona"),
         app_commands.Choice(name="Links", value="links")
-        ])
-    async def filterconf(self, ctx: commands.Context, filter_type:str = None, active:bool = None):
+    ])
+    async def filterconf(self, ctx: commands.Context, filter_type: str = None, active: bool = None):
         """
             Set which filter type to enable,
             calling it without filter type lists filter types and with it will toggle the filter.
@@ -52,17 +52,20 @@ class Settings(commands.Cog):
         if not filter_type:
             filterconfig = sqldata.get_filterconfig(ctx.guild.id)
 
-            active_filters = [fi.filter_type for fi in filterconfig if fi.active]
+            active_filters = [
+                fi.filter_type for fi in filterconfig if fi.active]
 
-            inactive_filters = [fi.filter_type for fi in filterconfig if not fi.active]
+            inactive_filters = [
+                fi.filter_type for fi in filterconfig if not fi.active]
 
             inactive_filters.extend([
-                    ft for ft in sqldata.FilterType
-                    if not ft in [*inactive_filters, *active_filters]
-                ])
+                ft for ft in sqldata.FilterType
+                if not ft in [*inactive_filters, *active_filters]
+            ])
 
             active_list = "\n".join([f"- {ft.value}" for ft in active_filters])
-            inactive_list = "\n".join([f"- {ft.value}" for ft in inactive_filters])
+            inactive_list = "\n".join(
+                [f"- {ft.value}" for ft in inactive_filters])
             if not active_list:
                 active_list = "none"
             if not inactive_list:
@@ -77,13 +80,16 @@ class Settings(commands.Cog):
         try:
             ftype = sqldata.FilterType(filter_type)
             if active is None:
-                filter_active = sqldata.get_filterconfig(ctx.guild.id, ftype)[0].active
-                sqldata.update_filterconfig(ctx.guild.id, ftype, not filter_active)
+                filter_active = sqldata.get_filterconfig(
+                    ctx.guild.id, ftype)[0].active
+                sqldata.update_filterconfig(
+                    ctx.guild.id, ftype, not filter_active)
             else:
                 sqldata.insert_filterconfig(ctx.guild.id, ftype, active)
             await ctx.send("Filter set and will now listen for new activity.")
         except ValueError:
             await ctx.send("Invalid filter found in arguments")
+
 
 async def setup(client: commands.Bot):
     "Setup function for settings COG"
