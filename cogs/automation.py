@@ -99,6 +99,7 @@ class Automation(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         "React when a member leaves or gets kicked"
+        # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(limit=1).__anext__()
 
         # TODO leave message
@@ -120,6 +121,7 @@ class Automation(commands.Cog):
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
         "React on ban."
         reason = "No reason found"
+        # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await guild.audit_logs(limit=1).__anext__()
         if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:
             reason = audit_entry.reason or "No reason given"

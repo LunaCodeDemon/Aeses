@@ -43,7 +43,7 @@ def create_table_logchannel():
 
 def get_logchannel(guild_id: int, logtype: LogType = None) -> Optional[List[LoggingChannel]]:
     "Get the log channel of the guild."
-    query = """SELECT channel_id, logtype FROM logchannels 
+    query = """SELECT channel_id, logtype FROM logchannels
                  WHERE guild_id = :guild_id"""
     ltype = None
     if logtype:
