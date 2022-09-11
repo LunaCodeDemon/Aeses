@@ -1,5 +1,6 @@
 "Handles most sql actions"
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 import os
 from typing import Optional, List
@@ -16,7 +17,9 @@ if str2bool(DEBUG):
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
 
-# TODO: create table for Reminder
+# TODO add delete reminders function
+# TODO add get reminders function
+# TODO add insert reminder function
 
 
 @dataclass
@@ -31,11 +34,32 @@ class Reminder:
     trigger_at: datetime
 
 
+def create_table_reminder():
+    "Create the table for reminders"
+    with engine.connect() as conn:
+        conn.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS reminder(
+                    note VARCHAR(2000),
+                    user_id BIGINT,
+                    guild_id BIGINT,
+                    channel_id BIGINT,
+                    direct BOOLEAN DEFAULT TRUE,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    trigger_at DATETIME
+                );
+            """)
+        )
+
+# TODO: create table for DailyAction
+# TODO: add get function for daiyaction
+# TODO: add update function for dailyaction
+# TODO: add insert function for dailyaction
+
+
 class DailyActionType(Enum):
     "Types of daily actions."
     IMAGE = "safebooru"
-
-# TODO: create table for DailyAction
 
 
 @dataclass
