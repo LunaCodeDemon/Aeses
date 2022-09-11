@@ -16,6 +16,37 @@ if str2bool(DEBUG):
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
 
+# TODO: create table for Reminder
+
+
+@dataclass
+class Reminder:
+    "Simple reminder"
+    note: str
+    user_id: int
+    guild_id: int
+    channel_id: int
+    direct: bool  # should it be send via direct message
+    created_at: datetime
+    trigger_at: datetime
+
+
+class DailyActionType(Enum):
+    "Types of daily actions."
+    IMAGE = "safebooru"
+
+# TODO: create table for DailyAction
+
+
+@dataclass
+class DailyAction:
+    "A daily action that can will be executed every day."
+    actiontype: DailyActionType
+    channel_id: int
+    guild_id: int
+    data: str  # search term or tags
+    created_at: datetime
+
 
 class LogType(Enum):
     "Types for logging."
