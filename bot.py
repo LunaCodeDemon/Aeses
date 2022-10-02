@@ -31,8 +31,9 @@ activities: List[Callable[[discord.Client], None]] = [
     lambda client: discord.Activity(
         type=discord.ActivityType.listening,
         name=f"{DEFAULT_PREFIX}help"
-        ),
+    ),
 ]
+
 
 class AesesBot(commands.Bot):
     "Custom class for Aeses bot"
@@ -52,11 +53,10 @@ class AesesBot(commands.Bot):
         if not ACTIVITY_OVERWRITE:
             await self.change_presence(activity=choice(activities)(self))
         else:
-            await self.change_presence(activity=
-                discord.Activity(
-                    type=discord.ActivityType.custom,
-                    name=ACTIVITY_OVERWRITE
-                    ))
+            await self.change_presence(activity=discord.Activity(
+                type=discord.ActivityType.custom,
+                name=ACTIVITY_OVERWRITE
+            ))
 
     @loop_status.before_loop
     async def before_loop_status(self):
@@ -67,6 +67,9 @@ class AesesBot(commands.Bot):
     async def on_ready(self):
         "This event will be triggered when the client is ready to use."
         print(f"Discord client logged in as {client.user.name}")
+
+        await self.set_default_profile_picture("default-profile.png")
+
         # pylint: disable=no-member
         self.loop_status.start()
 
@@ -107,6 +110,18 @@ class AesesBot(commands.Bot):
                     await after.edit(nick=None)
             except (discord.Forbidden, HTTPException) as err:
                 logging.exception(err)
+
+    async def set_profile_picture(self, path: str):
+        "Change the profile picture of the bot."
+        with open(path, encoding="utf-8") as file:
+            self.user.edit(avatar=file.read())
+
+    async def set_default_profile_picture(self, path: str):
+        "Changes the profile picture if none is set yet."
+        if not self.user:
+            return
+        if self.user.avatar != self.user.default_avatar:
+            self.set_profile_picture(path)
 
     async def on_command_error(self, ctx: commands.Context, error: BaseException):
         "Handles errors for every command."
