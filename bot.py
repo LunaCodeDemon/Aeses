@@ -12,7 +12,7 @@ from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
 
-DEFAULT_PREFIX = "!"
+DEFAULT_PREFIX = os.environ.get("PREFIX", "!")
 ACTIVITY_OVERWRITE = os.environ.get("ACTIVITY_OVERWRITE")
 
 activities: List[Callable[[discord.Client], None]] = [
@@ -27,11 +27,7 @@ activities: List[Callable[[discord.Client], None]] = [
         name=f"{DEFAULT_PREFIX}help"),
     lambda client: discord.Activity(
         type=discord.ActivityType.listening,
-        name="/help"),
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"{DEFAULT_PREFIX}help"
-    ),
+        name="/help")
 ]
 
 
