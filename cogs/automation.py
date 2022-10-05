@@ -29,9 +29,30 @@ class Automation(commands.Cog):
         # await self.daily_update.stop()
         await super().cog_unload()
 
-    # @tasks.loop(seconds=1)
-    # async def reminder_update(self):
-    #     pass  # TODO: implement reminder
+    @tasks.loop(seconds=1)
+    async def reminder_update(self):
+        "Sends reminders to channels and deletes them."
+        if not self.reminders:
+            return
+        for remind in self.reminders:
+            if remind.trigger_at > datetime.now():
+                return
+
+            user = self.client.get_user(remind.user_id)
+            target: Union[discord.TextChannel,
+                          discord.User] = self.client.get_channel(remind.channel_id)
+            if remind.direct:
+                target = user
+            if not target:
+                logging.warning("Reminder without target is triggered.")
+                return
+
+            embed = discord.Embed(title="Reminder", description=remind.note)
+            if hasattr(target, "send"):
+                target.send(user.mention, embed=embed)
+
+        self.reminders.clear()
+        # TODO: drop table of reminders
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):
