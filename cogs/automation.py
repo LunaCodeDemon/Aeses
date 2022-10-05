@@ -26,13 +26,15 @@ class Automation(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         "This gets triggered if the bot is ready"
+        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
         # pylint: disable=no-member
-        # await self.reminder_update.start()
+        await self.reminder_update.start()
         # await self.daily_update.start()
 
     async def cog_unload(self) -> None:
+        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
         # pylint: disable=no-member
-        # await self.reminder_update.stop()
+        await self.reminder_update.stop()
         # await self.daily_update.stop()
         await super().cog_unload()
 
@@ -71,7 +73,6 @@ class Automation(commands.Cog):
         "Command group of log functions"
         await ctx.send_help('log')
 
-    # FIXME check for permission
     @log.command(name="add")
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
@@ -148,6 +149,8 @@ class Automation(commands.Cog):
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
         "React on ban."
         reason = "No reason found"
+
+        # dunder linting has to be disabled, since anext() doesn't exist in v3.8
         # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await guild.audit_logs(limit=1).__anext__()
         if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:
