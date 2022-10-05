@@ -13,8 +13,11 @@ from scripts import sqldata
 class Automation(commands.Cog):
     "Cog for automations like reminder and dailies"
 
+    reminders: List[sqldata.Reminder] = None
+
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
+        self.reminders = []
 
     @commands.Cog.listener()
     async def on_ready(self):
