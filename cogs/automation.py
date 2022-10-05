@@ -131,12 +131,7 @@ class Automation(commands.Cog):
         # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(limit=1).__anext__()
 
-        # TODO leave message
-
-        if audit_entry.target.id != member.id:
-            return
-
-        if audit_entry.action == discord.AuditLogAction.kick:
+        if audit_entry.target.id == member.id and audit_entry.action == discord.AuditLogAction.kick:
             kick_log_channel_data = sqldata.get_logchannel(
                 member.guild.id, sqldata.LogType.MODERATION)
             if kick_log_channel_data:
@@ -145,6 +140,9 @@ class Automation(commands.Cog):
                 embed = await create_moderation_embed(member, "kick",
                                                       audit_entry.reason or "No reason given")
                 await kick_log_channel.send(embed=embed)
+        else:
+            # TODO log that a user has left the guild. (guild leave event.)
+            pass
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
