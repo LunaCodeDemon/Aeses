@@ -46,6 +46,7 @@ class Automation(commands.Cog):
     # FIXME check for permission
     @log.command(name="add")
     @commands.guild_only()
+    @commands.has_permissions(administrator=True)
     @app_commands.choices(
         logtype=[
             app_commands.Choice(name="Welcome messages",
