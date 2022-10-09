@@ -2,6 +2,10 @@
 Cog module for automations.
 This includes reminder and dailies
 """
+from ctypes import Union
+from datetime import datetime, timedelta
+import logging
+from typing import List
 import discord
 from discord import app_commands
 # pylint: disable=unused-import
@@ -13,25 +17,69 @@ from scripts import sqldata
 class Automation(commands.Cog):
     "Cog for automations like reminder and dailies"
 
+    reminders: List[sqldata.Reminder] = None
+
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
+        self.reminders = []
 
     @commands.Cog.listener()
     async def on_ready(self):
         "This gets triggered if the bot is ready"
+        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
         # pylint: disable=no-member
-        # await self.reminder_update.start()
+        await self.reminder_update.start()
         # await self.daily_update.start()
 
     async def cog_unload(self) -> None:
+        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
         # pylint: disable=no-member
-        # await self.reminder_update.stop()
+        await self.reminder_update.stop()
         # await self.daily_update.stop()
         await super().cog_unload()
 
-    # @tasks.loop(seconds=1)
-    # async def reminder_update(self):
-    #     pass  # TODO: implement reminder
+    @app_commands.command()
+    @app_commands.guild_only()
+    async def reminder(self, integration: discord.Interaction, note: str,
+                       seconds: int = None, minutes: int = None, hours: int = None,
+                       days: int = None, direct=None):
+        """
+            (Instable) You can set a reminder that will send you a message in a given time.
+        """
+        timestamp = datetime.now()
+        added_time = timedelta(
+            seconds=seconds, minutes=minutes, hours=hours, days=days)
+        if added_time.total_seconds() <= 0:
+            await integration.response.send_message("There is no time give for the reminder.")
+        rem = sqldata.Reminder(note, integration.user.id, integration.guild_id,
+                               integration.channel_id, direct, timestamp, timestamp + added_time)
+        await integration.response.send_message(f"Reminder scheduled for {rem.trigger_at}.")
+        # TODO add reminder to database
+
+    @tasks.loop(seconds=1)
+    async def reminder_update(self):
+        "Sends reminders to channels and deletes them."
+        if not self.reminders:
+            return
+        for remind in self.reminders:
+            if remind.trigger_at > datetime.now():
+                return
+
+            user = self.client.get_user(remind.user_id)
+            target: Union[discord.TextChannel,
+                          discord.User] = self.client.get_channel(remind.channel_id)
+            if remind.direct:
+                target = user
+            if not target:
+                logging.warning("Reminder without target is triggered.")
+                return
+
+            embed = discord.Embed(title="Reminder", description=remind.note)
+            if hasattr(target, "send"):
+                target.send(user.mention, embed=embed)
+
+        self.reminders.clear()
+        # TODO: update table of reminders
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):
@@ -102,12 +150,7 @@ class Automation(commands.Cog):
         # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(limit=1).__anext__()
 
-        # TODO leave message
-
-        if audit_entry.target.id != member.id:
-            return
-
-        if audit_entry.action == discord.AuditLogAction.kick:
+        if audit_entry.target.id == member.id and audit_entry.action == discord.AuditLogAction.kick:
             kick_log_channel_data = sqldata.get_logchannel(
                 member.guild.id, sqldata.LogType.MODERATION)
             if kick_log_channel_data:
@@ -116,11 +159,21 @@ class Automation(commands.Cog):
                 embed = await create_moderation_embed(member, "kick",
                                                       audit_entry.reason or "No reason given")
                 await kick_log_channel.send(embed=embed)
+        else:
+            welcome_log_channel_data = sqldata.get_logchannel(
+                member.guild.id, sqldata.LogType.WELCOME)
+            if welcome_log_channel_data:
+                welcome_log_channel = member.guild.get_channel(
+                    welcome_log_channel_data[0].channel_id)
+                embed = await create_welcome_embed(member, "Please be kind to eveyone here.")
+                await welcome_log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
         "React on ban."
         reason = "No reason found"
+
+        # dunder linting has to be disabled, since anext() doesn't exist in v3.8
         # pylint: disable=unnecessary-dunder-call
         audit_entry: discord.AuditLogEntry = await guild.audit_logs(limit=1).__anext__()
         if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:

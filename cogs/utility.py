@@ -7,15 +7,20 @@ from bot import AesesBot
 
 TIMEFORMAT = "%m/%d/%Y, %H:%M:%S"
 
+
 async def generate_whois_embed(member: discord.Member):
     "Generate a full whois embed for the given member"
     embed = discord.Embed(title=f"Whois of {member.display_name}")
     embed.set_thumbnail(url=member.display_avatar.url)
     embed.add_field(name="Username", value=member.name)
-    embed.add_field(name="Roles", value=", ".join([r.mention for r in member.roles]))
-    embed.add_field(name="Creation", value=member.created_at.strftime(TIMEFORMAT), inline=False)
-    embed.add_field(name="Joined", value=member.joined_at.strftime(TIMEFORMAT), inline=False)
+    embed.add_field(name="Roles", value=", ".join(
+        [r.mention for r in member.roles]))
+    embed.add_field(name="Creation", value=member.created_at.strftime(
+        TIMEFORMAT), inline=False)
+    embed.add_field(name="Joined", value=member.joined_at.strftime(
+        TIMEFORMAT), inline=False)
     return embed
+
 
 async def generate_avatar_embed(user: discord.User):
     "Generate an embed containing the avatar of the user"
@@ -23,11 +28,13 @@ async def generate_avatar_embed(user: discord.User):
     embed.set_image(url=user.avatar.url)
     return embed
 
+
 @app_commands.context_menu(name="Whois")
 async def menu_whois(interaction: discord.Interaction, member: discord.Member):
     "Get a whois over contex menu"
     embed = await generate_whois_embed(member)
     interaction.response.send_message(embed=embed)
+
 
 @app_commands.context_menu(name="Avatar")
 async def menu_avatar(interaction: discord.Interaction, member: discord.Member):
@@ -80,6 +87,7 @@ class Utility(commands.Cog):
     @commands.hybrid_command()
     async def invite(self, ctx: commands.Context):
         "Sends back an invite link for the bot."
+        # This line is long because of the url that only gets used at that spot.
         # pylint: disable=line-too-long
         link = f"https://discord.com/api/oauth2/authorize?client_id={self.client.application_id}&permissions=2281712656&scope=bot"
         embed = discord.Embed(
@@ -110,7 +118,8 @@ class Utility(commands.Cog):
     async def update_bot_statistics(self):
         "Updates statistics about the bot."
         if self.client.application_id:
-            bots_gg.update_statistics(self.client.application_id, len(self.client.guilds))
+            bots_gg.update_statistics(
+                self.client.application_id, len(self.client.guilds))
 
 
 async def setup(client: commands.Bot):
