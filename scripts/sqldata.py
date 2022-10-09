@@ -1,5 +1,6 @@
 "Handles most sql actions"
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 import os
 from typing import Optional, List
@@ -10,11 +11,65 @@ from scripts.conversion import str2bool
 DB_ENGINE = os.environ.get("DATABASE_ENGINE") or "sqlite"
 DB_URL = os.environ.get("DATABASE_URL") or "/data.db"
 DEBUG = str2bool(os.environ.get("DEBUG"))
-if str2bool(DEBUG):
+if not DB_ENGINE and not DB_URL:
     DB_URL = "/:memory:"
     DB_ENGINE = "sqlite"
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
+
+# TODO add delete reminders function
+# TODO add get reminders function
+# TODO add insert reminder function
+
+
+@dataclass
+class Reminder:
+    "Simple reminder"
+    note: str
+    user_id: int
+    guild_id: int
+    channel_id: int
+    direct: bool  # should it be send via direct message
+    created_at: datetime
+    trigger_at: datetime
+
+
+def create_table_reminder():
+    "Create the table for reminders"
+    with engine.connect() as conn:
+        conn.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS reminder(
+                    note VARCHAR(2000),
+                    user_id BIGINT,
+                    guild_id BIGINT,
+                    channel_id BIGINT,
+                    direct BOOLEAN DEFAULT TRUE,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    trigger_at DATETIME
+                );
+            """)
+        )
+
+# TODO: create table for DailyAction
+# TODO: add get function for daiyaction
+# TODO: add update function for dailyaction
+# TODO: add insert function for dailyaction
+
+
+class DailyActionType(Enum):
+    "Types of daily actions."
+    IMAGE = "safebooru"
+
+
+@dataclass
+class DailyAction:
+    "A daily action that can will be executed every day."
+    actiontype: DailyActionType
+    channel_id: int
+    guild_id: int
+    data: str  # search term or tags
+    created_at: datetime
 
 
 class LogType(Enum):

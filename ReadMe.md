@@ -7,6 +7,8 @@
 Aeses is focused on enhancing the Activity of a community and erasing possible spam.
 I will try to make Aeses powerful enough to be a standalone tool.
 
+The default profile picture is generated with the DALL-E AI, i do not guarantee that it's original.
+
 # Installation for Self-Hosting
 You will find full instructions [here][wiki-installation]
 
