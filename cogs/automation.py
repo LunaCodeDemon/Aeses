@@ -41,7 +41,8 @@ class Automation(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     async def reminder(self, integration: discord.Interaction, note: str,
-                       seconds: int = None, minutes: int = None, hours: int = None, days: int = None, direct=None):
+                       seconds: int = None, minutes: int = None, hours: int = None,
+                       days: int = None, direct=None):
         """
             (Instable) You can set a reminder that will send you a message in a given time.
         """
