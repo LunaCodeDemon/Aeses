@@ -3,7 +3,7 @@ Cog module for automations.
 This includes reminder and dailies
 """
 from ctypes import Union
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from typing import List
 import discord
@@ -38,6 +38,23 @@ class Automation(commands.Cog):
         # await self.daily_update.stop()
         await super().cog_unload()
 
+    @app_commands.command()
+    @app_commands.guild_only()
+    async def reminder(self, integration: discord.Interaction, note: str,
+                       seconds: int = None, minutes: int = None, hours: int = None, days: int = None, direct=None):
+        """
+            (Instable) You can set a reminder that will send you a message in a given time.
+        """
+        timestamp = datetime.now()
+        added_time = timedelta(
+            seconds=seconds, minutes=minutes, hours=hours, days=days)
+        if added_time.total_seconds() <= 0:
+            await integration.response.send_message("There is no time give for the reminder.")
+        rem = sqldata.Reminder(note, integration.user.id, integration.guild_id,
+                               integration.channel_id, direct, timestamp, timestamp + added_time)
+        await integration.response.send_message(f"Reminder scheduled for {rem.trigger_at}.")
+        # TODO add reminder to database
+
     @tasks.loop(seconds=1)
     async def reminder_update(self):
         "Sends reminders to channels and deletes them."
@@ -61,7 +78,7 @@ class Automation(commands.Cog):
                 target.send(user.mention, embed=embed)
 
         self.reminders.clear()
-        # TODO: drop table of reminders
+        # TODO: update table of reminders
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):
