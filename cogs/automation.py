@@ -3,9 +3,10 @@ Cog module for automations.
 This includes reminder and dailies
 """
 from ctypes import Union
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 from typing import List
+import numpy
 import discord
 from discord import app_commands
 # pylint: disable=unused-import
@@ -42,21 +43,27 @@ class Automation(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     # pylint: disable=too-many-arguments
-    async def reminder(self, integration: discord.Interaction, note: str,
-                       seconds: int = None, minutes: int = None, hours: int = None,
-                       days: int = None, direct: bool = None):
+    async def reminder(self, inter: discord.Interaction, note: str,
+                       seconds: int):
         """
             (Instable) You can set a reminder that will send you a message in a given time.
         """
-        timestamp = datetime.now()
-        added_time = timedelta(
-            seconds=seconds, minutes=minutes, hours=hours, days=days)
-        if added_time.total_seconds() <= 0:
-            await integration.response.send_message("There is no time given for the reminder.", ephemeral=True)
+        await inter.response.defer(ephemeral=True, thinking=True)
+        timestamp = numpy.datetime64(datetime.now())
+
+        added_time = numpy.timedelta64(seconds, "s")
+        if added_time <= 0:
+            await inter.followup.send("There is no time given for the reminder.", ephemeral=True)
             return
-        rem = sqldata.Reminder(note, integration.user.id, integration.guild_id,
-                               integration.channel_id, direct, timestamp, timestamp + added_time)
-        await integration.response.send_message(f"Reminder scheduled for {rem.trigger_at}.", ephemeral=True)
+
+        trigger_time = timestamp + added_time
+
+        rem = sqldata.Reminder(note, inter.user.id, inter.guild_id,
+                               inter.channel_id, True, timestamp, trigger_time)
+
+        self.reminders.append(rem)
+
+        await inter.followup.send(f"Reminder scheduled for {trigger_time}", ephemeral=True)
         # TODO add reminder to database
 
     @tasks.loop(seconds=1)
@@ -65,7 +72,7 @@ class Automation(commands.Cog):
         if not self.reminders:
             return
         for remind in self.reminders:
-            if remind.trigger_at > datetime.now():
+            if remind.trigger_at > numpy.datetime64(datetime.now()):
                 return
 
             user = self.client.get_user(remind.user_id)
@@ -78,8 +85,11 @@ class Automation(commands.Cog):
                 return
 
             embed = discord.Embed(title="Reminder", description=remind.note)
+
+            self.reminders.remove(remind)
+
             if hasattr(target, "send"):
-                target.send(user.mention, embed=embed)
+                await target.send(user.mention, embed=embed)
 
         self.reminders.clear()
         # TODO: update table of reminders
@@ -88,16 +98,16 @@ class Automation(commands.Cog):
     # async def daily_update(self):
     #     pass  # TODO: implement daily
 
-    @commands.hybrid_group()
-    @commands.guild_only()
+    @ commands.hybrid_group()
+    @ commands.guild_only()
     async def log(self, ctx: commands.Context):
         "Command group of log functions"
         await ctx.send_help('log')
 
-    @log.command(name="add")
-    @commands.guild_only()
-    @commands.has_permissions(administrator=True)
-    @app_commands.choices(
+    @ log.command(name="add")
+    @ commands.guild_only()
+    @ commands.has_permissions(administrator=True)
+    @ app_commands.choices(
         logtype=[
             app_commands.Choice(name="Welcome messages",
                                 value=sqldata.LogType.WELCOME.value),
@@ -114,8 +124,8 @@ class Automation(commands.Cog):
         sqldata.insert_logchannel(channel.guild.id, channel.id, ltype)
         await ctx.send(f"Activated {logtype} channel.")
 
-    @log.command(name="list")
-    @commands.guild_only()
+    @ log.command(name="list")
+    @ commands.guild_only()
     async def log_list(self, ctx: commands.Context):
         "List active log channels."
         channels = sqldata.get_logchannel(ctx.guild.id)
@@ -131,7 +141,7 @@ class Automation(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @commands.Cog.listener()
+    @ commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         "Handles member joins."
         log_channel_data = sqldata.get_logchannel(
@@ -147,7 +157,7 @@ class Automation(commands.Cog):
 
         await channel.send(embed=embed)
 
-    @commands.Cog.listener()
+    @ commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         "React when a member leaves or gets kicked"
         # pylint: disable=unnecessary-dunder-call
@@ -171,7 +181,7 @@ class Automation(commands.Cog):
                 embed = await create_welcome_embed(member, "Please be kind to eveyone here.")
                 await welcome_log_channel.send(embed=embed)
 
-    @commands.Cog.listener()
+    @ commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
         "React on ban."
         reason = "No reason found"
