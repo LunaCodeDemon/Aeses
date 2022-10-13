@@ -120,8 +120,9 @@ class AesesBot(commands.Bot):
 
     async def set_profile_picture(self, path: str):
         "Change the profile picture of the bot."
-        with open(path, encoding="utf-8") as file:
-            self.user.edit(avatar=file.read())
+        logging.info("changing profile picture to {path}", path=path)
+        with open(path, "rb") as file:
+            await self.user.edit(avatar=file.read())
 
     async def set_default_profile_picture(self, path: str):
         "Changes the profile picture if none is set yet."
@@ -130,7 +131,7 @@ class AesesBot(commands.Bot):
 
         # if the bot does not have an avatar, set it to the default.
         if not self.user.avatar:
-            self.set_profile_picture(path)
+            await self.set_profile_picture(path)
 
     async def on_command_error(self, ctx: commands.Context, error: BaseException):
         "Handles errors for every command."

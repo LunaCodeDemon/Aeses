@@ -5,6 +5,7 @@ from enum import Enum
 import os
 from typing import Optional, List
 from sqlalchemy import create_engine, text
+import numpy
 
 from scripts.conversion import str2bool
 
@@ -30,8 +31,8 @@ class Reminder:
     guild_id: int
     channel_id: int
     direct: bool  # should it be send via direct message
-    created_at: datetime
-    trigger_at: datetime
+    created_at: numpy.datetime64
+    trigger_at: numpy.datetime64
 
 
 def create_table_reminder():
