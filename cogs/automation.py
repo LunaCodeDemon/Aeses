@@ -173,13 +173,8 @@ class Automation(commands.Cog):
                                                       audit_entry.reason or "No reason given")
                 await kick_log_channel.send(embed=embed)
         else:
-            welcome_log_channel_data = sqldata.get_logchannel(
-                member.guild.id, sqldata.LogType.WELCOME)
-            if welcome_log_channel_data:
-                welcome_log_channel = member.guild.get_channel(
-                    welcome_log_channel_data[0].channel_id)
-                embed = await create_welcome_embed(member, "Please be kind to eveyone here.")
-                await welcome_log_channel.send(embed=embed)
+            # leaving member
+            pass
 
     @ commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
