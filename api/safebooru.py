@@ -35,12 +35,14 @@ class SafebooruPost(NamedTuple):
 def count(tags: List[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={
-            **SAFEBOORU_DEFAULTS,
-            'limit': 0,
-            'tags': ' '.join(tags) if tags else None,
-            's': "post"
-            })
+                       params={
+                           **SAFEBOORU_DEFAULTS,
+                           'limit': 0,
+                           'tags': ' '.join(tags) if tags else None,
+                           's': "post"
+                       })
+
+    # raise exception if request failed.
     if result.status_code != 200:
         raise SafebooruConnectionError
     # read retrieved data
@@ -51,19 +53,27 @@ def count(tags: List[str] = None) -> int:
 async def random_post(tags: List[str] = None) -> SafebooruPost:
     "Get a random post from booru"
     available = count(tags)-1
+
     if available < 0:
         raise SafebooruNothingFound(tags=tags)
+
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
-        params={**SAFEBOORU_DEFAULTS,
-        'limit': 1,
-        'tags': ' '.join(tags) if tags else None,
-        's': "post",
-        'pid': rng})
+                       params={**SAFEBOORU_DEFAULTS,
+                               'limit': 1,
+                               'tags': ' '.join(tags) if tags else None,
+                               's': "post",
+                               'pid': rng})
+
+    # raise exception if request failed.
     if result.status_code != 200:
         raise SafebooruConnectionError
+
+    # parse the xml output.
     tree = ET.fromstring(result.text)
     post_data = tree[0].attrib
+
+    # return post.
     return SafebooruPost(
         post_id=int(post_data['id']),
         file_url=post_data['file_url'],

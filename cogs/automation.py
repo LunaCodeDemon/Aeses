@@ -10,7 +10,7 @@ import discord
 from discord import app_commands
 # pylint: disable=unused-import
 from discord.ext import commands, tasks
-from scripts.logmessagebuilders import create_moderation_embed, create_welcome_embed
+from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
 
 
@@ -38,11 +38,13 @@ class Automation(commands.Cog):
         # await self.daily_update.stop()
         await super().cog_unload()
 
+    # it cannot be prevented that this command has a lot of options.
     @app_commands.command()
     @app_commands.guild_only()
+    # pylint: disable=too-many-arguments
     async def reminder(self, integration: discord.Interaction, note: str,
                        seconds: int = None, minutes: int = None, hours: int = None,
-                       days: int = None, direct=None):
+                       days: int = None, direct: bool = None):
         """
             (Instable) You can set a reminder that will send you a message in a given time.
         """
@@ -50,10 +52,11 @@ class Automation(commands.Cog):
         added_time = timedelta(
             seconds=seconds, minutes=minutes, hours=hours, days=days)
         if added_time.total_seconds() <= 0:
-            await integration.response.send_message("There is no time give for the reminder.")
+            await integration.response.send_message("There is no time given for the reminder.", ephemeral=True)
+            return
         rem = sqldata.Reminder(note, integration.user.id, integration.guild_id,
                                integration.channel_id, direct, timestamp, timestamp + added_time)
-        await integration.response.send_message(f"Reminder scheduled for {rem.trigger_at}.")
+        await integration.response.send_message(f"Reminder scheduled for {rem.trigger_at}.", ephemeral=True)
         # TODO add reminder to database
 
     @tasks.loop(seconds=1)

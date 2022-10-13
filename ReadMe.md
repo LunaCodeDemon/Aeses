@@ -36,9 +36,10 @@ More infos in the [wiki][wiki-filters]
 The aspects of moderation and spam protection are most important to me, but i am also open for suggestions.
 
 ### Moderation Goals
-- Strike command
-- Logging for moderative actions
+- Strike command and system.
+- More precise logging.
+- Detection of malicious or nudity containing images or links.
 
 ### Activity Enhancing Goals
-- Daily messages (questions, steamdb sales, statements or images)
+- Daily messages (questions, steamdb sales, statements/qoutes or images)
 - Giveaway functionality (picking people)
