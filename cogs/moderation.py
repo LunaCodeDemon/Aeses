@@ -42,9 +42,11 @@ class Moderation(commands.Cog):
         "Toggle the channel to nsfw mode."
         channel: discord.TextChannel = ctx.channel
 
+        # use the inverted boolean of the is_nsfw if static_value isn't given.
         if static_value is None:
             static_value = not channel.is_nsfw()
 
+        # set the nsfw setting for the channel.
         await channel.edit(nsfw=static_value)
         await ctx.send(config['dialogs']['nsfw']['response']
                        .format(channel=channel.mention, status=channel.is_nsfw()))
@@ -54,11 +56,15 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def slowdown(self, ctx: commands.Context, seconds: int):
         "Slows down the chat. (0 disables this)"
+        # don't allow a negative number.
         if seconds < 0:
             await ctx.send("This command doesn't work with negative numbers")
             return
+
+        # set the slowdown for the channel.
         await ctx.channel.edit(slowmode_delay=seconds)
         await ctx.send("Successfully changed slowmode settings.")
+
 
 async def setup(client: commands.Bot):
     "Setup function for the moderation extention."

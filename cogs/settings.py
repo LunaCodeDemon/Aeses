@@ -5,6 +5,7 @@ from discord.ext import commands
 # from iniloader import config
 
 from scripts import sqldata
+from scripts.messagebuilders import generate_filtertype_listing
 
 
 class Settings(commands.Cog):
@@ -63,14 +64,10 @@ class Settings(commands.Cog):
                 if not ft in [*inactive_filters, *active_filters]
             ])
 
-            active_list = "\n".join([f"- {ft.value}" for ft in active_filters])
-            inactive_list = "\n".join(
-                [f"- {ft.value}" for ft in inactive_filters])
-            if not active_list:
-                active_list = "none"
-            if not inactive_list:
-                inactive_list = "none"
+            active_list = generate_filtertype_listing(active_filters)
+            inactive_list = generate_filtertype_listing(inactive_list)
 
+            # create an embed to output the status of the filters.
             embed = discord.Embed()
             embed.title = "Filters"
             embed.add_field(name="Active", value=active_list)

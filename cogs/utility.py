@@ -10,28 +10,35 @@ TIMEFORMAT = "%m/%d/%Y, %H:%M:%S"
 
 async def generate_whois_embed(member: discord.Member):
     "Generate a full whois embed for the given member"
+
     embed = discord.Embed(title=f"Whois of {member.display_name}")
     embed.set_thumbnail(url=member.display_avatar.url)
+
     embed.add_field(name="Username", value=member.name)
     embed.add_field(name="Roles", value=", ".join(
         [r.mention for r in member.roles]))
+
     embed.add_field(name="Creation", value=member.created_at.strftime(
         TIMEFORMAT), inline=False)
     embed.add_field(name="Joined", value=member.joined_at.strftime(
         TIMEFORMAT), inline=False)
+
     return embed
 
 
 async def generate_avatar_embed(user: discord.User):
     "Generate an embed containing the avatar of the user"
+
     embed = discord.Embed(title=user.name)
     embed.set_image(url=user.avatar.url)
+
     return embed
 
 
 @app_commands.context_menu(name="Whois")
 async def menu_whois(interaction: discord.Interaction, member: discord.Member):
     "Get a whois over contex menu"
+
     embed = await generate_whois_embed(member)
     interaction.response.send_message(embed=embed)
 
@@ -39,6 +46,7 @@ async def menu_whois(interaction: discord.Interaction, member: discord.Member):
 @app_commands.context_menu(name="Avatar")
 async def menu_avatar(interaction: discord.Interaction, member: discord.Member):
     "Get a whois over contex menu"
+
     embed = await generate_whois_embed(member)
     interaction.response.send_message(embed=embed)
 
@@ -74,14 +82,19 @@ class Utility(commands.Cog):
     async def info(self, ctx: commands.Context):
         "This command shows information about the bot."
         embed_message = discord.Embed()
+
         embed_message.title = self.client.user.name
+
         embed_message.add_field(
             name="Github Repo", value="https://github.com/ChinoCodeDemon/Aeses")
         embed_message.add_field(
             name="Support Server", value="https://discord.gg/StgE5Z4bFB"
         )
+
         embed_message.add_field(name="Framework", value="discord.py")
+
         embed_message.set_image(url=self.client.user.avatar.url)
+
         await ctx.send(embed=embed_message)
 
     @commands.hybrid_command()
@@ -90,18 +103,22 @@ class Utility(commands.Cog):
         # This line is long because of the url that only gets used at that spot.
         # pylint: disable=line-too-long
         link = f"https://discord.com/api/oauth2/authorize?client_id={self.client.application_id}&permissions=2281712656&scope=bot"
+
         embed = discord.Embed(
             title="Invite",
             # pylint: disable=line-too-long
             description=f"You can use this link this link to invite the bot into your server:\n{link}"
         )
+
         await ctx.send(embed=embed)
 
     @commands.hybrid_command()
     async def avatar(self, ctx: commands.Context, user: discord.User = None):
         "Give a better view on avatars"
+        # assume the target to be the author if not given.
         if not user:
             user = ctx.author
+
         embed = await generate_avatar_embed(user)
         await ctx.send(embed=embed)
 
@@ -109,8 +126,10 @@ class Utility(commands.Cog):
     @commands.guild_only()
     async def whois(self, ctx: commands.Context, member: discord.Member = None):
         "Gives you quick info about a member or yourself, useful for moderation."
+        # assume the target to be the author if not given.
         if not member:
             member = ctx.author
+
         embed = await generate_whois_embed(member)
         await ctx.send(embed=embed)
 

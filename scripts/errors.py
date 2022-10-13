@@ -16,11 +16,14 @@ def missing_permissions(is_bot: bool):
     "This gets triggered when bot or client doesn't have correct permissions."
     def inner(
         ctx: commands.Context,
-        error: Union[commands.BotMissingPermissions, commands.MissingPermissions]
+        error: Union[commands.BotMissingPermissions,
+                     commands.MissingPermissions]
     ):
         if not ctx.guild:
             ctx.send(config['exceptions']['outside_of_guild'])
             return
+
+        # send different messages depending on the causing user..
         if is_bot:
             ctx.send(config['exceptions']['bot_missing_permissions']
                      .format(permissions=', '.join(error.missing_perms)))

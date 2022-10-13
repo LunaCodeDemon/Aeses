@@ -74,7 +74,11 @@ async def menu_pat(interaction: discord.Interaction, member: discord.Member):
 
 
 class Emotes(commands.Cog):
-    "A command group containing emote commands."
+    """
+        A command group containing emote commands.
+        Those will have a descriptive text, for each action.
+        The text will be selected depending if someone was mentioned/selected per argument.
+    """
 
     def __init__(self, client: AesesBot) -> None:
         self.client = client
@@ -85,6 +89,8 @@ class Emotes(commands.Cog):
             menu_pat,
             menu_smug
         ])
+
+    # repeating hybrid emote commands that are using the @emoji_command decorator.
 
     @commands.hybrid_command()
     @emoji_command
