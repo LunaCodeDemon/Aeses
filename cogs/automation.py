@@ -73,7 +73,7 @@ class Automation(commands.Cog):
             return
         for remind in self.reminders:
             if remind.trigger_at > numpy.datetime64(datetime.now()):
-                return
+                continue
 
             user = self.client.get_user(remind.user_id)
             target: Union[discord.TextChannel,
@@ -82,7 +82,7 @@ class Automation(commands.Cog):
                 target = user
             if not target:
                 logging.warning("Reminder without target is triggered.")
-                return
+                continue
 
             embed = discord.Embed(title="Reminder", description=remind.note)
 
