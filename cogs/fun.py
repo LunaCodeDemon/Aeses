@@ -1,6 +1,7 @@
 "Module for fun commands."
 import re
-from discord import Embed
+import discord
+from discord import Embed, app_commands
 from discord.ext import commands
 from api import pokeapi
 from api import safebooru
@@ -14,9 +15,14 @@ class Fun(commands.Cog):
         "Initialiser for 'Fun' cog."
         self.client = client
 
-    @commands.hybrid_command()
-    async def pokemon(self, ctx: commands.Context, *, name: str = None):
-        "Searches for a pokemon."
+    @app_commands.command()
+    async def pokemon(self, inter: discord.Interaction, *, name: str = None):
+        """
+            Searches for a pokemon.
+        """
+
+        await inter.response.defer()
+
         # grab data from pokeapi, depending on what name was given (or not)
         pokemon_data: any
         if name:
@@ -29,16 +35,21 @@ class Fun(commands.Cog):
 
         # send a on_fail response if the embed wasn't created.
         if not pokemon_embed:
-            await ctx.send(config['dialogs']['pokemon']['on_fail']
-                           .format(pokename=name))
+            await inter.followup.send(config['dialogs']['pokemon']['on_fail']
+                                      .format(pokename=name))
             return
 
         # send the created embed.
-        await ctx.send(embed=pokemon_embed)
+        await inter.followup.send(embed=pokemon_embed)
 
-    @commands.hybrid_command()
-    async def booru(self, ctx: commands.Context, *, tags: str):
-        "Get image from safebooru.org"
+    @app_commands.command()
+    async def booru(self, inter: discord.Interaction, *, tags: str):
+        """
+            Get image from safebooru.org
+        """
+
+        await inter.response.defer()
+
         # pull a random booru post.
         post = await safebooru.random_post(re.split(r"[\s,+]+", tags))
 
@@ -51,7 +62,7 @@ class Fun(commands.Cog):
         embed.set_image(url=post.file_url)
 
         # respond with the embed.
-        await ctx.send(embed=embed)
+        await inter.followup.send(embed=embed)
 
 
 async def setup(client: commands.Bot):

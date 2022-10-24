@@ -139,19 +139,14 @@ class AesesBot(commands.Bot):
             error = error.original
 
         # get an exception function
-        exc_func = error_dictionary.get(error)
+        exc_func = error_dictionary.get(error.__class__)
 
         # execute exception function if found.
         if exc_func:
             exc_func(ctx, error)
         else:
             logging.exception(error)
-            raise error
-
-    async def on_error(self, event_method: str, /, *args) -> None:
-        # these errors should be rare and not useful for the user.
-        # so logging these should be enough.
-        logging.error(event_method, args)
 
 
-client = AesesBot(command_prefix=DEFAULT_PREFIX, intents=discord.Intents.all())
+client = AesesBot(command_prefix=DEFAULT_PREFIX,
+                  intents=discord.Intents.all(), help_command=None)

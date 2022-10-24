@@ -1,4 +1,5 @@
 "Core command group (commands ex. info, help)"
+from dis import disco
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
@@ -51,21 +52,17 @@ async def menu_avatar(interaction: discord.Interaction, member: discord.Member):
     interaction.response.send_message(embed=embed)
 
 
-class HelpCommand(commands.MinimalHelpCommand):
-    "Help Command for this bot, might add some custom methods."
-
-
 class Utility(commands.Cog):
     "Basic functionalities of the bot, like information."
 
     def __init__(self, client: AesesBot) -> None:
         self.client = client
-        client.help_command = HelpCommand()
-        client.help_command.cog = self
-        # client.add_context_menus([
-        #     menu_whois,
-        #     menu_avatar
-        # ])
+        # client.help_command = HelpCommand()
+        # client.help_command.cog = self
+        client.add_context_menus([
+            menu_whois,
+            menu_avatar
+        ])
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -78,8 +75,8 @@ class Utility(commands.Cog):
         # pylint: disable=no-member
         self.update_bot_statistics.cancel()
 
-    @commands.hybrid_command()
-    async def info(self, ctx: commands.Context):
+    @app_commands.command()
+    async def info(self, inter: discord.Interaction):
         "This command shows information about the bot."
         embed_message = discord.Embed()
 
@@ -95,10 +92,10 @@ class Utility(commands.Cog):
 
         embed_message.set_image(url=self.client.user.avatar.url)
 
-        await ctx.send(embed=embed_message)
+        await inter.response.send_message(embed=embed_message)
 
-    @commands.hybrid_command()
-    async def invite(self, ctx: commands.Context):
+    @app_commands.command()
+    async def invite(self, inter: discord.Interaction):
         "Sends back an invite link for the bot."
         # This line is long because of the url that only gets used at that spot.
         # pylint: disable=line-too-long
@@ -110,28 +107,28 @@ class Utility(commands.Cog):
             description=f"You can use this link this link to invite the bot into your server:\n{link}"
         )
 
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
-    @commands.hybrid_command()
-    async def avatar(self, ctx: commands.Context, user: discord.User = None):
+    @app_commands.command()
+    async def avatar(self, inter: discord.Interaction, user: discord.User = None):
         "Give a better view on avatars"
         # assume the target to be the author if not given.
         if not user:
-            user = ctx.author
+            user = inter.user
 
         embed = await generate_avatar_embed(user)
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @commands.guild_only()
-    async def whois(self, ctx: commands.Context, member: discord.Member = None):
+    async def whois(self, inter: discord.Interaction, member: discord.Member = None):
         "Gives you quick info about a member or yourself, useful for moderation."
         # assume the target to be the author if not given.
         if not member:
-            member = ctx.author
+            member = inter.user
 
         embed = await generate_whois_embed(member)
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
     @tasks.loop(seconds=5)
     async def update_bot_statistics(self):

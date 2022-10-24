@@ -28,11 +28,11 @@ def generate_emoji_embed(action: str, myself: str, target: str = None):
 def emoji_command(func):
     "Emoji command decoration."
     @functools.wraps(func)
-    async def decorator(self, ctx: commands.Context, target: discord.Member = None):
+    async def decorator(self, inter: discord.Interaction, target: discord.Member = None):
         embed = generate_emoji_embed(
-            func.__name__, ctx.author.mention, target.mention if target else None)
-        await ctx.send(embed=embed)
-        func(self, ctx, target)
+            func.__name__, inter.user.mention, target.mention if target else None)
+        await inter.response.send_message(embed=embed)
+        func(self, inter, target)
     return decorator
 
 
@@ -82,79 +82,79 @@ class Emotes(commands.Cog):
 
     def __init__(self, client: AesesBot) -> None:
         self.client = client
-        client.add_context_menus([
-            menu_hug,
-            menu_cry,
-            menu_smile,
-            menu_pat,
-            menu_smug
-        ])
+        # client.add_context_menus([
+        #     menu_hug,
+        #     menu_cry,
+        #     menu_smile,
+        #     menu_pat,
+        #     menu_smug
+        # ])
 
     # repeating hybrid emote commands that are using the @emoji_command decorator.
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def hug(self, ctx: commands.Context, target: discord.Member = None):
+    def hug(self, inter: discord.Interaction, target: discord.Member = None):
         "Hug someone."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def cry(self, ctx: commands.Context, target: discord.Member = None):
+    def cry(self, inter: discord.Interaction, target: discord.Member = None):
         "For the sad times."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def smile(self, ctx: commands.Context, target: discord.Member = None):
+    def smile(self, inter: discord.Interaction, target: discord.Member = None):
         "For happy times."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def smug(self, ctx: commands.Context, target: discord.Member = None):
+    def smug(self, inter: discord.Interaction, target: discord.Member = None):
         "surely something weird is happening."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def pat(self, ctx: commands.Context, target: discord.Member = None):
+    def pat(self, inter: discord.Interaction, target: discord.Member = None):
         "Nice pats."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def blush(self, ctx: commands.Context, target: discord.Member = None):
+    def blush(self, inter: discord.Interaction, target: discord.Member = None):
         "Do a blush"
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def boop(self, ctx: commands.Context, target: discord.Member = None):
+    def boop(self, inter: discord.Interaction, target: discord.Member = None):
         "Boop someone"
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def highfive(self, ctx: commands.Context, target: discord.Member = None):
+    def highfive(self, inter: discord.Interaction, target: discord.Member = None):
         "Highfive someone"
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def kiss(self, ctx: commands.Context, target: discord.Member = None):
+    def kiss(self, inter: discord.Interaction, target: discord.Member = None):
         "Kiss someone"
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def nom(self, ctx: commands.Context, target: discord.Member = None):
+    def nom(self, inter: discord.Interaction, target: discord.Member = None):
         "Nom someone"
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def stare(self, ctx: commands.Context, target: discord.Member = None):
+    def stare(self, inter: discord.Interaction, target: discord.Member = None):
         "Stareing..."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def wave(self, ctx: commands.Context, target: discord.Member = None):
+    def wave(self, inter: discord.Interaction, target: discord.Member = None):
         "Waving.."
 
-    @commands.hybrid_command()
+    @app_commands.command()
     @emoji_command
-    def slap(self, ctx: commands.Context, target: discord.Member = None):
+    def slap(self, inter: discord.Interaction, target: discord.Member = None):
         "Slap someone"
 
 
