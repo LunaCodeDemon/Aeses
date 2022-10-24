@@ -50,10 +50,15 @@ def missing_required_argument(ctx: commands.Context, _: commands.MissingRequired
     ctx.send_help(ctx.command)
 
 
+def command_not_found(_: commands.Context, __: commands.CommandNotFound):
+    "Command wasn't found"
+
+
 error_dictionary = {
     commands.MissingPermissions: missing_permissions(False),
     commands.BotMissingPermissions: missing_permissions(True),
     safebooru.SafebooruConnectionError: safebooru_connection_error,
     safebooru.SafebooruNothingFound: safebooru_nothing_found,
-    commands.MissingRequiredArgument: missing_required_argument
+    commands.MissingRequiredArgument: missing_required_argument,
+    commands.CommandNotFound: command_not_found
 }
