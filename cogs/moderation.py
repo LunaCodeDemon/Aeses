@@ -1,5 +1,4 @@
 "Cog for moderation commands and listeners"
-from http.client import HTTPException
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -28,7 +27,11 @@ class Moderation(commands.Cog):
         # set the nsfw setting for the channel.
         await channel.edit(nsfw=static_value)
         await inter.response.send_message(config['dialogs']['nsfw']['response']
-                                          .format(channel=channel.mention, status=channel.is_nsfw()))
+                                          .format(
+            channel=channel.mention,
+            status=channel.is_nsfw()
+        )
+        )
 
     @app_commands.command()
     @commands.has_permissions(manage_channels=True)

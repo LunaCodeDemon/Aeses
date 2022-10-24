@@ -20,7 +20,8 @@ class Settings(commands.Cog):
         app_commands.Choice(name="Emoji in Names", value="emona"),
         app_commands.Choice(name="Links", value="links")
     ])
-    async def filterconf(self, inter: discord.Interaction, filter_type: str = None, active: bool = None):
+    async def filterconf(self, inter: discord.Interaction,
+                         filter_type: str = None, active: bool = None):
         """
             Set which filter type to enable,
             calling it without filter type lists filter types and with it will toggle the filter.
