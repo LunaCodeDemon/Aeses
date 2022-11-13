@@ -22,7 +22,7 @@ class Automation(commands.Cog):
 
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
-        self.reminders = sqldata.restore_reminders()
+        self.reminders = []
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -64,17 +64,15 @@ class Automation(commands.Cog):
         self.reminders.append(rem)
 
         await inter.followup.send(f"Reminder scheduled for {trigger_time}", ephemeral=True)
-        sqldata.insert_reminder(rem)
+        # TODO add reminder to database
 
     @tasks.loop(seconds=1)
     async def reminder_update(self):
         "Sends reminders to channels and deletes them."
         if not self.reminders:
             return
-        timestamp = numpy.datetime64(datetime.now())
         for remind in self.reminders:
-            # guard clause using the trigger time.
-            if remind.trigger_at > timestamp:
+            if remind.trigger_at > numpy.datetime64(datetime.now()):
                 continue
 
             user = self.client.get_user(remind.user_id)
@@ -94,7 +92,7 @@ class Automation(commands.Cog):
                 await target.send(user.mention, embed=embed)
 
         self.reminders.clear()
-        sqldata.cleanup_reminders(timestamp)
+        # TODO: update table of reminders
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):

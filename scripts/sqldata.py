@@ -18,6 +18,11 @@ if not DB_ENGINE and not DB_URL:
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
 
+# TODO add delete reminders function
+# TODO add get reminders function
+# TODO add insert reminder function
+
+
 @dataclass
 class Reminder:
     "Simple reminder"
@@ -46,63 +51,6 @@ def create_table_reminder():
                 );
             """)
         )
-
-def insert_reminder(reminder: Reminder):
-    """
-        Insert a reminder into the reminder table.
-    """
-    with engine.connect() as conn:
-        conn.execute(text("""
-            INSERT INTO reminder (note, user_id, guild_id, channel_id, direct, created_at, trigger_at)
-            VALUES (:note, :user_id, :guild_id, :channel_id, :direct, :created_at, :trigger_at)
-        """),
-        {
-            "note": reminder.note,
-            "user_id": reminder.user_id,
-            "guild_id": reminder.guild_id,
-            "channel_id": reminder.channel_id,
-            "direct": reminder.direct,
-            "created_at": datetime.utcfromtimestamp(reminder.created_at.astype(int) * 1e-6),
-            "trigger_at": datetime.utcfromtimestamp(reminder.trigger_at.astype(int) * 1e-6)
-        })
-
-def cleanup_reminders(time: numpy.datetime64):
-    """
-        Clean up reminders that are triggered at a certain time.
-    """
-    with engine.connect() as conn:
-        conn.execute(text(
-            """
-                DELETE FROM reminder WHERE trigger_at <= :time
-            """
-        ),
-        {
-            "time": time
-        })
-
-def restore_reminders() -> List[Reminder]:
-    """
-        Returns a list of all stored reminders.
-        Is used in case that the bot crashes.
-    """
-    with engine.connect() as conn:
-        result = conn.execute(text(
-            """
-                SELECT note, user_id, guild_id, channel_id, direct, created_at, trigger_at
-                FROM reminder;
-            """
-        ))
-        return [] if not result else [
-            Reminder(
-                note=reminder_entry[0],
-                user_id=reminder_entry[1],
-                guild_id=reminder_entry[2],
-                channel_id=reminder_entry[3],
-                direct=reminder_entry[4],
-                created_at=numpy.datetime64(reminder_entry[5]),
-                trigger_at=numpy.datetime64(reminder_entry[6])
-            ) for reminder_entry in result
-        ]
 
 # TODO: create table for DailyAction
 # TODO: add get function for daiyaction
