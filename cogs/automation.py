@@ -22,6 +22,7 @@ class Automation(commands.Cog):
 
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
+        sqldata.create_table_reminder()
         self.reminders = sqldata.restore_reminders()
 
     @commands.Cog.listener()
