@@ -12,7 +12,7 @@ from scripts.conversion import str2bool
 DB_ENGINE = os.environ.get("DATABASE_ENGINE") or "sqlite"
 DB_URL = os.environ.get("DATABASE_URL") or "/data.db"
 DEBUG = str2bool(os.environ.get("DEBUG"))
-if str2bool(DEBUG):
+if not DB_ENGINE and not DB_URL:
     DB_URL = "/:memory:"
     DB_ENGINE = "sqlite"
 

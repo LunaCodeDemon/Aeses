@@ -1,8 +1,8 @@
-discord.py
-emoji
-sqlalchemy
-httpx
-python-dotenv
-psycopg2-binary
-pyyaml
-numpy
+discord.py==2.0.1
+emoji==2.1.0
+httpx==0.23.0
+numpy==1.23.4
+pytest==7.1.2
+python-dotenv==0.21.0
+PyYAML==6.0
+SQLAlchemy==1.4.41

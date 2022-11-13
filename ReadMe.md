@@ -7,6 +7,8 @@
 Aeses is focused on enhancing the Activity of a community and erasing possible spam.
 I will try to make Aeses powerful enough to be a standalone tool.
 
+The default profile picture is generated with the DALL-E AI, i do not guarantee that it's original.
+
 # Installation for Self-Hosting
 You will find full instructions [here][wiki-installation]
 
@@ -34,9 +36,10 @@ More infos in the [wiki][wiki-filters]
 The aspects of moderation and spam protection are most important to me, but i am also open for suggestions.
 
 ### Moderation Goals
-- Strike command
-- Logging for moderative actions
+- Strike command and system.
+- More precise logging.
+- Detection of malicious or nudity containing images or links.
 
 ### Activity Enhancing Goals
-- Daily messages (questions, steamdb sales, statements or images)
+- Daily messages (questions, steamdb sales, statements/qoutes or images)
 - Giveaway functionality (picking people)

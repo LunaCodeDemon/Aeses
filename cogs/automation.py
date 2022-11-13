@@ -11,7 +11,7 @@ import discord
 from discord import app_commands
 # pylint: disable=unused-import
 from discord.ext import commands, tasks
-from scripts.logmessagebuilders import create_moderation_embed, create_welcome_embed
+from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
 
 
@@ -75,7 +75,7 @@ class Automation(commands.Cog):
         for remind in self.reminders:
             # guard clause using the trigger time.
             if remind.trigger_at > timestamp:
-                return
+                continue
 
             user = self.client.get_user(remind.user_id)
             target: Union[discord.TextChannel,
@@ -84,7 +84,7 @@ class Automation(commands.Cog):
                 target = user
             if not target:
                 logging.warning("Reminder without target is triggered.")
-                return
+                continue
 
             embed = discord.Embed(title="Reminder", description=remind.note)
 
@@ -100,48 +100,47 @@ class Automation(commands.Cog):
     # async def daily_update(self):
     #     pass  # TODO: implement daily
 
-    @ commands.hybrid_group()
-    @ commands.guild_only()
-    async def log(self, ctx: commands.Context):
-        "Command group of log functions"
-        await ctx.send_help('log')
+    class Log(commands.GroupCog, name="log"):
+        """
+            Commands for logging purposes
+        """
 
-    @ log.command(name="add")
-    @ commands.guild_only()
-    @ commands.has_permissions(administrator=True)
-    @ app_commands.choices(
-        logtype=[
-            app_commands.Choice(name="Welcome messages",
-                                value=sqldata.LogType.WELCOME.value),
-            app_commands.Choice(name="Moderations events",
-                                value=sqldata.LogType.MODERATION.value)
-        ]
-    )
-    async def log_add(self, ctx: commands.Context,
-                      logtype: str, channel: discord.TextChannel = None):
-        "Add a log channel to the list."
-        if not channel:
-            channel = ctx.channel
-        ltype = sqldata.LogType(logtype)
-        sqldata.insert_logchannel(channel.guild.id, channel.id, ltype)
-        await ctx.send(f"Activated {logtype} channel.")
+        @ app_commands.command(name="add")
+        @ commands.guild_only()
+        @ commands.has_permissions(administrator=True)
+        @ app_commands.choices(
+            logtype=[
+                app_commands.Choice(name="Welcome messages",
+                                    value=sqldata.LogType.WELCOME.value),
+                app_commands.Choice(name="Moderations events",
+                                    value=sqldata.LogType.MODERATION.value)
+            ]
+        )
+        async def log_add(self, inter: discord.Interaction,
+                          logtype: str, channel: discord.TextChannel = None):
+            "Add a log channel to the list."
+            if not channel:
+                channel = inter.channel
+            ltype = sqldata.LogType(logtype)
+            sqldata.insert_logchannel(channel.guild.id, channel.id, ltype)
+            await inter.response.send_message(f"Activated {logtype} channel.")
 
-    @ log.command(name="list")
-    @ commands.guild_only()
-    async def log_list(self, ctx: commands.Context):
-        "List active log channels."
-        channels = sqldata.get_logchannel(ctx.guild.id)
-        if not channels:
-            await ctx.send("No log channels selected.")
-            return
+        @ app_commands.command(name="list")
+        @ commands.guild_only()
+        async def log_list(self, inter: discord.Interaction):
+            "List active log channels."
+            channels = sqldata.get_logchannel(inter.guild.id)
+            if not channels:
+                await inter.response.send_message("No log channels selected.")
+                return
 
-        embed = discord.Embed(title="Active log channels.")
-        for logchannel in channels:
-            embed.add_field(
-                name=logchannel.logtype.name,
-                value=f"<#{logchannel.channel_id}>"
-            )
-        await ctx.send(embed=embed)
+            embed = discord.Embed(title="Active log channels.")
+            for logchannel in channels:
+                embed.add_field(
+                    name=logchannel.logtype.name,
+                    value=f"<#{logchannel.channel_id}>"
+                )
+            await inter.response.send_message(embed=embed)
 
     @ commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -175,13 +174,8 @@ class Automation(commands.Cog):
                                                       audit_entry.reason or "No reason given")
                 await kick_log_channel.send(embed=embed)
         else:
-            welcome_log_channel_data = sqldata.get_logchannel(
-                member.guild.id, sqldata.LogType.WELCOME)
-            if welcome_log_channel_data:
-                welcome_log_channel = member.guild.get_channel(
-                    welcome_log_channel_data[0].channel_id)
-                embed = await create_welcome_embed(member, "Please be kind to eveyone here.")
-                await welcome_log_channel.send(embed=embed)
+            # leaving member
+            pass
 
     @ commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
