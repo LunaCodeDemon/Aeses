@@ -29,5 +29,7 @@ jobs:
       run: |
         pylint --disable=fixme $(git ls-files '*.py')
     - name: Test with PyTest
+      env:
+        DEBUG: true
       run: |
         pytest
