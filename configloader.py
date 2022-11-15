@@ -5,4 +5,4 @@ import yaml
 config = yaml.full_load(open("dialogs.yml", encoding="utf-8"))
 
 # pylint: disable=consider-using-with
-emote_links = yaml.full_load(open("em1ote-links.yml", encoding="utf-8"))
+emote_links = yaml.full_load(open("emote-links.yml", encoding="utf-8"))
