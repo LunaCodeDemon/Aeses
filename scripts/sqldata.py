@@ -5,7 +5,9 @@ from enum import Enum
 import os
 from typing import Optional, List
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 import numpy
+from table_bases.DailyAction import DailyAction
 
 from scripts.conversion import str2bool
 
@@ -17,6 +19,14 @@ if not DB_ENGINE and not DB_URL:
     DB_ENGINE = "sqlite"
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
+Session = sessionmaker(bind=engine)
+
+def insert_entity_into_session(session: Session, *entities: DailyAction):
+    """
+        Insert entity into session.
+    """
+    for entity in entities:
+        session.add(entity)
 
 @dataclass
 class Reminder:
@@ -103,26 +113,6 @@ def restore_reminders() -> List[Reminder]:
                 trigger_at=numpy.datetime64(reminder_entry[6])
             ) for reminder_entry in result
         ]
-
-# TODO: create table for DailyAction
-# TODO: add get function for daiyaction
-# TODO: add update function for dailyaction
-# TODO: add insert function for dailyaction
-
-
-class DailyActionType(Enum):
-    "Types of daily actions."
-    IMAGE = "safebooru"
-
-
-@dataclass
-class DailyAction:
-    "A daily action that can will be executed every day."
-    actiontype: DailyActionType
-    channel_id: int
-    guild_id: int
-    data: str  # search term or tags
-    created_at: datetime
 
 
 class LogType(Enum):
