@@ -7,7 +7,6 @@ from typing import Optional, List
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import numpy
-from table_bases.DailyAction import DailyAction
 
 from scripts.conversion import str2bool
 
@@ -20,13 +19,6 @@ if not DB_ENGINE and not DB_URL:
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
 Session = sessionmaker(bind=engine)
-
-def insert_entity_into_session(session: Session, *entities: DailyAction):
-    """
-        Insert entity into session.
-    """
-    for entity in entities:
-        session.add(entity)
 
 @dataclass
 class Reminder:

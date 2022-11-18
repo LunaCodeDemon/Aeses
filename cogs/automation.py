@@ -2,6 +2,7 @@
 Cog module for automations.
 This includes reminder and dailies
 """
+import re
 from ctypes import Union
 from datetime import datetime
 import logging
@@ -11,19 +12,26 @@ import discord
 from discord import app_commands
 # pylint: disable=unused-import
 from discord.ext import commands, tasks
+from sqlalchemy import select
 from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
-from scripts import sqldata
-
+from scripts import sqldata, messagebuilders
+from table_bases import daily_action
+from api import safebooru
 
 class Automation(commands.Cog):
     "Cog for automations like reminder and dailies"
 
     reminders: List[sqldata.Reminder] = None
+    dailies: List[daily_action.DailyConfiguration] = []
 
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
         sqldata.create_table_reminder()
         self.reminders = sqldata.restore_reminders()
+        with sqldata.Session() as session:
+            stmt = select(daily_action.DailyConfiguration)
+            for daily in session.scalars(stmt):
+                self.dailies.append(daily)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -97,9 +105,50 @@ class Automation(commands.Cog):
         self.reminders.clear()
         sqldata.cleanup_reminders(timestamp)
 
-    # @tasks.loop(hours=24)
-    # async def daily_update(self):
-    #     pass  # TODO: implement daily
+    @tasks.loop(hours=24)
+    async def daily_update(self):
+        """
+            Is run every 24 hours.
+            Every daily action will be executed.
+        """
+        for daily in self.dailies:
+            if daily.enabled_actions is 0:
+                continue
+
+            channel = self.client.get_channel(daily.channel_id)
+            if not channel:
+                with sqldata.Session() as session:
+                    session.delete(daily)
+                continue
+
+            if (daily.enabled_actions & daily_action.DailyActionType.IMAGE.value) != 0:
+                with sqldata.Session() as session:
+                    stmt = (
+                        select(daily_action.BooruDaily)
+                        .join(daily_action.DailyConfiguration)
+                        .where(daily_action.BooruDaily.id == daily.id)
+                    )
+                    booru_settings: daily_action.BooruDaily = await session.scalars(stmt).one()
+                    if not booru_settings:
+                        continue
+
+                    post = await safebooru.random_post(
+                        re.split(
+                            r"[\s,+]+",
+                            booru_settings.tags
+                            )
+                        )
+                    if not post:
+                        continue
+
+                    embed = messagebuilders.generate_booru_message(post)
+                    channel.send(embed=embed)
+
+    class Daily(commands.Group, name="daily"):
+        """
+            Commands for Daily commands.
+        """
+        # TODO implement daily commands
 
     class Log(commands.GroupCog, name="log"):
         """
