@@ -72,7 +72,8 @@ class Automation(commands.Cog):
         "Sends reminders to channels and deletes them."
         if not self.reminders:
             return
-        timestamp = numpy.datetime64(datetime.now())
+        timestamp_raw = datetime.now()
+        timestamp = numpy.datetime64(timestamp_raw)
         for remind in self.reminders:
             # guard clause using the trigger time.
             if remind.trigger_at > timestamp:
@@ -95,7 +96,7 @@ class Automation(commands.Cog):
                 await target.send(user.mention, embed=embed)
 
         self.reminders.clear()
-        sqldata.cleanup_reminders(timestamp)
+        sqldata.cleanup_reminders(timestamp_raw)
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):
