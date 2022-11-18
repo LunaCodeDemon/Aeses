@@ -9,7 +9,6 @@ from typing import List
 import numpy
 import discord
 from discord import app_commands
-# pylint: disable=unused-import
 from discord.ext import commands, tasks
 from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
