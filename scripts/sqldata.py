@@ -41,8 +41,8 @@ def create_table_reminder():
                     guild_id BIGINT,
                     channel_id BIGINT,
                     direct BOOLEAN DEFAULT TRUE,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    trigger_at DATETIME
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    trigger_at TIMESTAMP
                 );
             """)
         )
