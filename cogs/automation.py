@@ -148,11 +148,12 @@ class Automation(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         "Handles member joins."
         log_channel_data = sqldata.get_logchannel(
-            member.guild.id, sqldata.LogType.WELCOME)[0]
+            member.guild.id, sqldata.LogType.WELCOME)
 
         if not log_channel_data:
             return
 
+        log_channel_data = log_channel_data[0]
         channel = member.guild.get_channel(log_channel_data.channel_id)
 
         text = "Welcome {member} to our nice corner."
