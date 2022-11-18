@@ -24,10 +24,6 @@ activities: List[Callable[[discord.Client], None]] = [
     lambda client: discord.Activity(
         type=discord.ActivityType.listening,
         name=f"{len(client.guilds)} guilds"),
-    # show the text help command
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"{DEFAULT_PREFIX}help")
 ]
 
 
