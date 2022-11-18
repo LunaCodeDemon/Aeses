@@ -112,7 +112,7 @@ class Automation(commands.Cog):
             Every daily action will be executed.
         """
         for daily in self.dailies:
-            if daily.enabled_actions is 0:
+            if daily.enabled_actions == 0:
                 continue
 
             channel = self.client.get_channel(daily.channel_id)
