@@ -1,11 +1,12 @@
 "Module for fun commands."
 import re
 import discord
-from discord import Embed, app_commands
+from discord import app_commands
 from discord.ext import commands
 from api import pokeapi
 from api import safebooru
 from configloader import config
+from scripts.messagebuilders import generate_booru_message
 
 
 class Fun(commands.Cog):
@@ -54,12 +55,7 @@ class Fun(commands.Cog):
         post = await safebooru.random_post(re.split(r"[\s,+]+", tags))
 
         # build an embed from the booru data
-        embed = Embed()
-        embed.title = f"Post: {post.post_id}"
-        embed.description = f"You will find the post here: {post.post_url}"
-        embed.set_footer(
-            text="Post has comments" if post.has_comments else "Post has no comments.")
-        embed.set_image(url=post.file_url)
+        embed = generate_booru_message(post)
 
         # respond with the embed.
         await inter.followup.send(embed=embed)
