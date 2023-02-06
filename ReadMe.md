@@ -43,3 +43,6 @@ The aspects of moderation and spam protection are most important to me, but i am
 ### Activity Enhancing Goals
 - Daily messages (questions, steamdb sales, statements/qoutes or images)
 - Giveaway functionality (picking people)
+
+### REFERENCES
+ - Forename list is from the [Moby Word List by Gary Ward](https://www.gutenberg.org/ebooks/3201)
