@@ -231,7 +231,7 @@ max-public-methods=20
 max-returns=6
 
 # Maximum number of statements in function / method body.
-max-statements=50
+max-statements=30
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=2
@@ -285,7 +285,8 @@ bad-names=foo,
           baz,
           toto,
           tutu,
-          tata
+          tata,
+          tuto
 
 # Bad variable names regexes, separated by a comma. If names match any regex,
 # they will always be refused

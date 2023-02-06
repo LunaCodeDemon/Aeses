@@ -26,8 +26,9 @@ def seek_optimial_front_sprite(data) -> str:
     "Seek for default front sprites for a pokemon."
     other = data['sprites']['other']
     img_link = data['sprites']['front_default']
-    sprite_list = [other[v]
-                   for v in other if v in ["home", "official-artwork"]]
+    sprite_list = [
+        other[v] for v in other if v in ["home", "official-artwork"]
+    ]
 
     # seek if better one exists.
     for sprite in sprite_list:

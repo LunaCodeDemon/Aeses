@@ -4,6 +4,7 @@ import httpx
 import pytest
 from api import safebooru
 
+
 @pytest.mark.asyncio
 async def test_random_post():
     "Test for the random post method of the booru command"
@@ -14,5 +15,7 @@ async def test_random_post():
     except httpx.ReadTimeout:
         # in this case a false positive is better.
         # it might be that pokeapi ratelimited the github workflow
-        print("Test for random_post got threw exception ReadTimeout. (probably ratelimit)")
+        print(
+            "Test for random_post got threw exception ReadTimeout. (probably ratelimit)"
+        )
         assert True

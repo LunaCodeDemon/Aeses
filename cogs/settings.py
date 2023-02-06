@@ -20,8 +20,10 @@ class Settings(commands.Cog):
         app_commands.Choice(name="Emoji in Names", value="emona"),
         app_commands.Choice(name="Links", value="links")
     ])
-    async def filterconf(self, inter: discord.Interaction,
-                         filter_type: str = None, active: bool = None):
+    async def filterconf(self,
+                         inter: discord.Interaction,
+                         filter_type: str = None,
+                         active: bool = None):
         """
             Set which filter type to enable,
             calling it without filter type lists filter types and with it will toggle the filter.
@@ -37,10 +39,12 @@ class Settings(commands.Cog):
             filterconfig = sqldata.get_filterconfig(inter.guild.id)
 
             active_filters = [
-                fi.filter_type for fi in filterconfig if fi.active]
+                fi.filter_type for fi in filterconfig if fi.active
+            ]
 
             inactive_filters = [
-                fi.filter_type for fi in filterconfig if not fi.active]
+                fi.filter_type for fi in filterconfig if not fi.active
+            ]
 
             inactive_filters.extend([
                 ft for ft in sqldata.FilterType
@@ -62,13 +66,15 @@ class Settings(commands.Cog):
             if active is None:
                 filter_active = sqldata.get_filterconfig(
                     inter.guild.id, ftype)[0].active
-                sqldata.update_filterconfig(
-                    inter.guild.id, ftype, not filter_active)
+                sqldata.update_filterconfig(inter.guild.id, ftype,
+                                            not filter_active)
             else:
                 sqldata.insert_filterconfig(inter.guild.id, ftype, active)
-            await inter.response.send_message("Filter set and will now listen for new activity.")
+            await inter.response.send_message(
+                "Filter set and will now listen for new activity.")
         except ValueError:
-            await inter.response.send_message("Invalid filter found in arguments")
+            await inter.response.send_message(
+                "Invalid filter found in arguments")
 
 
 async def setup(client: commands.Bot):

@@ -9,7 +9,5 @@ from scripts.sqldata import FilterType
 def test_generate_filtertype_listing():
     "Testing filtertype list generator."
     assert generate_filtertype_listing([]) == "none"
-    assert generate_filtertype_listing([
-        FilterType.EMOJI_NAME,
-        FilterType.LINK
-    ]) == "- emona\n- links"
+    assert generate_filtertype_listing(
+        [FilterType.EMOJI_NAME, FilterType.LINK]) == "- emona\n- links"

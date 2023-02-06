@@ -78,10 +78,12 @@ def check_nickname(member: discord.Member) -> bool:
 
     if member.display_name is not None:
         # check for an emoji in the name
-        if FilterType.EMOJI_NAME in filter_types and check_for_emoji(member.display_name):
+        if FilterType.EMOJI_NAME in filter_types and check_for_emoji(
+                member.display_name):
             return True
 
         # check for a link in the name
-        if FilterType.LINK in filter_types and check_for_links(member.display_name):
+        if FilterType.LINK in filter_types and check_for_links(
+                member.display_name):
             return True
     return False

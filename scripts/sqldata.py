@@ -18,6 +18,7 @@ if not DB_ENGINE and not DB_URL:
 
 engine = create_engine(f"{DB_ENGINE}://{DB_URL}", echo=DEBUG)
 
+
 @dataclass
 class Reminder:
     "Simple reminder"
@@ -44,41 +45,48 @@ def create_table_reminder():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     trigger_at TIMESTAMP
                 );
-            """)
-        )
+            """))
+
 
 def insert_reminder(reminder: Reminder):
     """
         Insert a reminder into the reminder table.
     """
     with engine.connect() as conn:
-        conn.execute(text("""
+        conn.execute(
+            text("""
             INSERT INTO reminder (note, user_id, guild_id, channel_id, direct, created_at, trigger_at)
             VALUES (:note, :user_id, :guild_id, :channel_id, :direct, :created_at, :trigger_at)
-        """),
-        {
-            "note": reminder.note,
-            "user_id": reminder.user_id,
-            "guild_id": reminder.guild_id,
-            "channel_id": reminder.channel_id,
-            "direct": reminder.direct,
-            "created_at": datetime.utcfromtimestamp(reminder.created_at.astype(int) * 1e-6),
-            "trigger_at": datetime.utcfromtimestamp(reminder.trigger_at.astype(int) * 1e-6)
-        })
+        """), {
+                "note":
+                reminder.note,
+                "user_id":
+                reminder.user_id,
+                "guild_id":
+                reminder.guild_id,
+                "channel_id":
+                reminder.channel_id,
+                "direct":
+                reminder.direct,
+                "created_at":
+                datetime.utcfromtimestamp(
+                    reminder.created_at.astype(int) * 1e-6),
+                "trigger_at":
+                datetime.utcfromtimestamp(
+                    reminder.trigger_at.astype(int) * 1e-6)
+            })
+
 
 def cleanup_reminders(time: numpy.datetime64):
     """
         Clean up reminders that are triggered at a certain time.
     """
     with engine.connect() as conn:
-        conn.execute(text(
-            """
+        conn.execute(
+            text("""
                 DELETE FROM reminder WHERE trigger_at <= :time
-            """
-        ),
-        {
-            "time": time
-        })
+            """), {"time": time})
+
 
 def restore_reminders() -> List[Reminder]:
     """
@@ -86,23 +94,22 @@ def restore_reminders() -> List[Reminder]:
         Is used in case that the bot crashes.
     """
     with engine.connect() as conn:
-        result = conn.execute(text(
-            """
+        result = conn.execute(
+            text("""
                 SELECT note, user_id, guild_id, channel_id, direct, created_at, trigger_at
                 FROM reminder;
-            """
-        ))
+            """))
         return [] if not result else [
-            Reminder(
-                note=reminder_entry[0],
-                user_id=reminder_entry[1],
-                guild_id=reminder_entry[2],
-                channel_id=reminder_entry[3],
-                direct=reminder_entry[4],
-                created_at=numpy.datetime64(reminder_entry[5]),
-                trigger_at=numpy.datetime64(reminder_entry[6])
-            ) for reminder_entry in result
+            Reminder(note=reminder_entry[0],
+                     user_id=reminder_entry[1],
+                     guild_id=reminder_entry[2],
+                     channel_id=reminder_entry[3],
+                     direct=reminder_entry[4],
+                     created_at=numpy.datetime64(reminder_entry[5]),
+                     trigger_at=numpy.datetime64(reminder_entry[6]))
+            for reminder_entry in result
         ]
+
 
 # TODO: create table for DailyAction
 # TODO: add get function for daiyaction
@@ -149,7 +156,8 @@ def create_table_logchannel():
                  logtype varchar(15));"""))
 
 
-def get_logchannel(guild_id: int, logtype: LogType = None) -> Optional[List[LoggingChannel]]:
+def get_logchannel(guild_id: int,
+                   logtype: LogType = None) -> Optional[List[LoggingChannel]]:
     "Get the log channel of the guild."
     query = """SELECT channel_id, logtype FROM logchannels
                  WHERE guild_id = :guild_id"""
@@ -159,32 +167,34 @@ def get_logchannel(guild_id: int, logtype: LogType = None) -> Optional[List[Logg
         ltype = logtype.value
     channel_id: Optional[int] = None
     with engine.connect() as conn:
-        result = conn.execute(
-            text(query),
-            [{"guild_id": guild_id, "logtype": ltype}]
-        )
-        channel_id = None if not result else [LoggingChannel(
-            guild_id,
-            logchannel[0],
-            LogType(logchannel[1])
-        ) for logchannel in result
+        result = conn.execute(text(query), [{
+            "guild_id": guild_id,
+            "logtype": ltype
+        }])
+        channel_id = None if not result else [
+            LoggingChannel(guild_id, logchannel[0], LogType(logchannel[1]))
+            for logchannel in result
         ]
     return channel_id
 
 
-def update_logchannel(guild_id: int, channel_id: int, logtype: LogType) -> None:
+def update_logchannel(guild_id: int, channel_id: int,
+                      logtype: LogType) -> None:
     "Update channel_id for logchannel in guild."
     with engine.connect() as conn:
         conn.execute(
             text("""UPDATE logchannels
                  SET channel_id = :channel_id
                  WHERE guild_id = :guild_id
-                 AND logtype = :logtype;"""),
-            [{"guild_id": guild_id, "channel_id": channel_id, "logtype": logtype.value}]
-        )
+                 AND logtype = :logtype;"""), [{
+                "guild_id": guild_id,
+                "channel_id": channel_id,
+                "logtype": logtype.value
+            }])
 
 
-def insert_logchannel(guild_id: int, channel_id: int, logtype: LogType) -> None:
+def insert_logchannel(guild_id: int, channel_id: int,
+                      logtype: LogType) -> None:
     "Insert logchannel into database"
 
     # Guard to prevent having multiple log channels.
@@ -196,7 +206,11 @@ def insert_logchannel(guild_id: int, channel_id: int, logtype: LogType) -> None:
         conn.execute(
             text("""INSERT INTO logchannels (guild_id, channel_id, logtype)
                   VALUES (:guild_id, :channel_id, :logtype)"""),
-            [{"guild_id": guild_id, "channel_id": channel_id, "logtype": logtype.value}])
+            [{
+                "guild_id": guild_id,
+                "channel_id": channel_id,
+                "logtype": logtype.value
+            }])
 
 
 class FilterType(Enum):
@@ -217,39 +231,28 @@ def create_table_filterconfig():
     "Creates a table for guild filter."
     with engine.connect() as conn:
         conn.execute(
-            text(
-                "CREATE TABLE IF NOT EXISTS filterconfig("
-                "guild_id bigint, "
-                "filter_type VARCHAR(8), "
-                "active boolean"
-                ");"
-            )
-        )
+            text("CREATE TABLE IF NOT EXISTS filterconfig("
+                 "guild_id bigint, "
+                 "filter_type VARCHAR(8), "
+                 "active boolean"
+                 ");"))
 
 
-def get_filterconfig(guild_id: int, filter_type: FilterType = None) -> Optional[List[FilterConfig]]:
+def get_filterconfig(
+        guild_id: int,
+        filter_type: FilterType = None) -> Optional[List[FilterConfig]]:
     "Get filter config for guild, can be multiple."
-    query = (
-        "SELECT * FROM filterconfig "
-        "WHERE guild_id = :guild_id "
-    )
-    params = {
-        "guild_id": guild_id
-    }
+    query = ("SELECT * FROM filterconfig WHERE guild_id = :guild_id ")
+    params = {"guild_id": guild_id}
     if filter_type:
         query += "AND filter_type = :filter_type"
         params.update({"filter_type": filter_type.value})
     with engine.connect() as conn:
-        result = conn.execute(
-            text(query),
-            params
-        ).all()
+        result = conn.execute(text(query), params).all()
         return result and [
-            FilterConfig(
-                guild_id=filterconfig[0],
-                filter_type=FilterType(filterconfig[1]),
-                active=bool(filterconfig[2])
-            )
+            FilterConfig(guild_id=filterconfig[0],
+                         filter_type=FilterType(filterconfig[1]),
+                         active=bool(filterconfig[2]))
             for filterconfig in result
         ]
 
@@ -261,10 +264,11 @@ def update_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
             text("UPDATE filterconfig "
                  "SET active = :active "
                  "WHERE guild_id = :guild_id "
-                 "AND filter_type = :filter_type;"),
-            {"filter_type": filter_type.value,
-                "guild_id": guild_id, "active": active}
-        )
+                 "AND filter_type = :filter_type;"), {
+                     "filter_type": filter_type.value,
+                     "guild_id": guild_id,
+                     "active": active
+                 })
 
 
 def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
@@ -276,9 +280,11 @@ def insert_filterconfig(guild_id: int, filter_type: FilterType, active: bool):
     with engine.connect() as conn:
         conn.execute(
             text("INSERT INTO filterconfig (guild_id, filter_type, active) "
-                 "VALUES (:guild_id, :filter_type, :active)"),
-            {"guild_id": guild_id, "filter_type": filter_type.value, "active": active}
-        )
+                 "VALUES (:guild_id, :filter_type, :active)"), {
+                     "guild_id": guild_id,
+                     "filter_type": filter_type.value,
+                     "active": active
+                 })
 
 
 create_table_filterconfig()

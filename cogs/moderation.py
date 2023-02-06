@@ -16,7 +16,9 @@ class Moderation(commands.Cog):
     @app_commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def nsfw(self, inter: discord.Interaction, static_value: bool = None):
+    async def nsfw(self,
+                   inter: discord.Interaction,
+                   static_value: bool = None):
         "Toggle the channel to nsfw mode."
         channel: discord.TextChannel = inter.channel
 
@@ -26,12 +28,9 @@ class Moderation(commands.Cog):
 
         # set the nsfw setting for the channel.
         await channel.edit(nsfw=static_value)
-        await inter.response.send_message(config['dialogs']['nsfw']['response']
-                                          .format(
-            channel=channel.mention,
-            status=channel.is_nsfw()
-        )
-        )
+        await inter.response.send_message(
+            config['dialogs']['nsfw']['response'].format(
+                channel=channel.mention, status=channel.is_nsfw()))
 
     @app_commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -40,12 +39,14 @@ class Moderation(commands.Cog):
         "Slows down the chat. (0 disables this)"
         # don't allow a negative number.
         if seconds < 0:
-            await inter.response.send_message("This command doesn't work with negative numbers")
+            await inter.response.send_message(
+                "This command doesn't work with negative numbers")
             return
 
         # set the slowdown for the channel.
         await inter.channel.edit(slowmode_delay=seconds)
-        await inter.response.send_message("Successfully changed slowmode settings.")
+        await inter.response.send_message(
+            "Successfully changed slowmode settings.")
 
 
 async def setup(client: commands.Bot):

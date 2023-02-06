@@ -12,16 +12,12 @@ def generate_emoji_embed(action: str, myself: str, target: str = None):
     "Generates an emoji for an emote"
     embed = discord.Embed()
     if target:
-        embed.description = (
-            config['emotes'][action]['with_target']
-            .format(myself=myself, target=target)
-        )
+        embed.description = (config['emotes'][action]['with_target'].format(
+            myself=myself, target=target))
 
     else:
-        embed.description = (
-            config['emotes'][action]['alone']
-            .format(myself=myself)
-        )
+        embed.description = (config['emotes'][action]['alone'].format(
+            myself=myself))
 
     embed.color = discord.Color(0xff3300)
 
@@ -32,12 +28,16 @@ def generate_emoji_embed(action: str, myself: str, target: str = None):
 
 def emoji_command(func):
     "Emoji command decoration."
+
     @functools.wraps(func)
-    async def decorator(self, inter: discord.Interaction, target: discord.Member = None):
-        embed = generate_emoji_embed(
-            func.__name__, inter.user.mention, target.mention if target else None)
+    async def decorator(self,
+                        inter: discord.Interaction,
+                        target: discord.Member = None):
+        embed = generate_emoji_embed(func.__name__, inter.user.mention,
+                                     target.mention if target else None)
         await inter.response.send_message(embed=embed)
         func(self, inter, target)
+
     return decorator
 
 
@@ -47,7 +47,6 @@ class Emotes(commands.Cog):
         Those will have a descriptive text, for each action.
         The text will be selected depending if someone was mentioned/selected per argument.
     """
-
     def __init__(self, client: AesesBot) -> None:
         self.client = client
 
@@ -90,7 +89,9 @@ class Emotes(commands.Cog):
 
     @app_commands.command()
     @emoji_command
-    def highfive(self, inter: discord.Interaction, target: discord.Member = None):
+    def highfive(self,
+                 inter: discord.Interaction,
+                 target: discord.Member = None):
         "Highfive someone"
 
     @app_commands.command()

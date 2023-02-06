@@ -53,7 +53,8 @@ class Automation(commands.Cog):
 
         added_time = numpy.timedelta64(seconds, "s")
         if added_time <= 0:
-            await inter.followup.send("There is no time given for the reminder.", ephemeral=True)
+            await inter.followup.send(
+                "There is no time given for the reminder.", ephemeral=True)
             return
 
         trigger_time = timestamp + added_time
@@ -63,7 +64,8 @@ class Automation(commands.Cog):
 
         self.reminders.append(rem)
 
-        await inter.followup.send(f"Reminder scheduled for {trigger_time}", ephemeral=True)
+        await inter.followup.send(f"Reminder scheduled for {trigger_time}",
+                                  ephemeral=True)
         sqldata.insert_reminder(rem)
 
     @tasks.loop(seconds=1)
@@ -80,7 +82,8 @@ class Automation(commands.Cog):
 
             user = self.client.get_user(remind.user_id)
             target: Union[discord.TextChannel,
-                          discord.User] = self.client.get_channel(remind.channel_id)
+                          discord.User] = self.client.get_channel(
+                              remind.channel_id)
             if remind.direct:
                 target = user
             if not target:
@@ -106,20 +109,19 @@ class Automation(commands.Cog):
         """
             Commands for logging purposes
         """
-
-        @ app_commands.command(name="add")
-        @ commands.guild_only()
-        @ commands.has_permissions(administrator=True)
-        @ app_commands.choices(
-            logtype=[
-                app_commands.Choice(name="Welcome messages",
-                                    value=sqldata.LogType.WELCOME.value),
-                app_commands.Choice(name="Moderations events",
-                                    value=sqldata.LogType.MODERATION.value)
-            ]
-        )
-        async def log_add(self, inter: discord.Interaction,
-                          logtype: str, channel: discord.TextChannel = None):
+        @app_commands.command(name="add")
+        @commands.guild_only()
+        @commands.has_permissions(administrator=True)
+        @app_commands.choices(logtype=[
+            app_commands.Choice(name="Welcome messages",
+                                value=sqldata.LogType.WELCOME.value),
+            app_commands.Choice(name="Moderations events",
+                                value=sqldata.LogType.MODERATION.value)
+        ])
+        async def log_add(self,
+                          inter: discord.Interaction,
+                          logtype: str,
+                          channel: discord.TextChannel = None):
             "Add a log channel to the list."
             if not channel:
                 channel = inter.channel
@@ -127,8 +129,8 @@ class Automation(commands.Cog):
             sqldata.insert_logchannel(channel.guild.id, channel.id, ltype)
             await inter.response.send_message(f"Activated {logtype} channel.")
 
-        @ app_commands.command(name="list")
-        @ commands.guild_only()
+        @app_commands.command(name="list")
+        @commands.guild_only()
         async def log_list(self, inter: discord.Interaction):
             "List active log channels."
             channels = sqldata.get_logchannel(inter.guild.id)
@@ -138,17 +140,15 @@ class Automation(commands.Cog):
 
             embed = discord.Embed(title="Active log channels.")
             for logchannel in channels:
-                embed.add_field(
-                    name=logchannel.logtype.name,
-                    value=f"<#{logchannel.channel_id}>"
-                )
+                embed.add_field(name=logchannel.logtype.name,
+                                value=f"<#{logchannel.channel_id}>")
             await inter.response.send_message(embed=embed)
 
-    @ commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         "Handles member joins."
-        log_channel_data = sqldata.get_logchannel(
-            member.guild.id, sqldata.LogType.WELCOME)
+        log_channel_data = sqldata.get_logchannel(member.guild.id,
+                                                  sqldata.LogType.WELCOME)
 
         if not log_channel_data:
             return
@@ -162,11 +162,12 @@ class Automation(commands.Cog):
 
         await channel.send(embed=embed)
 
-    @ commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         "React when a member leaves or gets kicked"
         # pylint: disable=unnecessary-dunder-call
-        audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(limit=1).__anext__()
+        audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(
+            limit=1).__anext__()
 
         if audit_entry.target.id == member.id and audit_entry.action == discord.AuditLogAction.kick:
             kick_log_channel_data = sqldata.get_logchannel(
@@ -175,21 +176,22 @@ class Automation(commands.Cog):
             if kick_log_channel_data:
                 kick_log_channel = member.guild.get_channel(
                     kick_log_channel_data[0].channel_id)
-                embed = await create_moderation_embed(member, "kick",
-                                                      audit_entry.reason or "No reason given")
+                embed = await create_moderation_embed(
+                    member, "kick", audit_entry.reason or "No reason given")
                 await kick_log_channel.send(embed=embed)
         else:
             # leaving member
             pass
 
-    @ commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User):
         "React on ban."
         reason = "No reason found"
 
         # dunder linting has to be disabled, since anext() doesn't exist in v3.8
         # pylint: disable=unnecessary-dunder-call
-        audit_entry: discord.AuditLogEntry = await guild.audit_logs(limit=1).__anext__()
+        audit_entry: discord.AuditLogEntry = await guild.audit_logs(
+            limit=1).__anext__()
         if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:
             reason = audit_entry.reason or "No reason given"
 

@@ -36,8 +36,7 @@ def count(tags: List[str] = None) -> int:
     "Gets the amount of entries for the search"
     result = httpx.get(SAFEBOORU_BASEURL,
                        params={
-                           **SAFEBOORU_DEFAULTS,
-                           'limit': 0,
+                           **SAFEBOORU_DEFAULTS, 'limit': 0,
                            'tags': ' '.join(tags) if tags else None,
                            's': "post"
                        })
@@ -52,18 +51,19 @@ def count(tags: List[str] = None) -> int:
 
 async def random_post(tags: List[str] = None) -> SafebooruPost:
     "Get a random post from booru"
-    available = count(tags)-1
+    available = count(tags) - 1
 
     if available < 0:
         raise SafebooruNothingFound(tags=tags)
 
     rng = randint(0, available)
     result = httpx.get(SAFEBOORU_BASEURL,
-                       params={**SAFEBOORU_DEFAULTS,
-                               'limit': 1,
-                               'tags': ' '.join(tags) if tags else None,
-                               's': "post",
-                               'pid': rng})
+                       params={
+                           **SAFEBOORU_DEFAULTS, 'limit': 1,
+                           'tags': ' '.join(tags) if tags else None,
+                           's': "post",
+                           'pid': rng
+                       })
 
     # raise exception if request failed.
     if result.status_code != 200:
@@ -77,7 +77,7 @@ async def random_post(tags: List[str] = None) -> SafebooruPost:
     return SafebooruPost(
         post_id=int(post_data['id']),
         file_url=post_data['file_url'],
-        post_url=f"https://safebooru.org/index.php?page=post&s=view&id={post_data['id']}",
+        post_url=
+        f"https://safebooru.org/index.php?page=post&s=view&id={post_data['id']}",
         has_comments=post_data['has_comments'],
-        tags=post_data['tags']
-    )
+        tags=post_data['tags'])

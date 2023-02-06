@@ -6,6 +6,7 @@ from typing import List
 import random
 import functools
 
+
 def wrap_name_randomizer(func):
     """
         Wrapper that loads names from file for a certain function.
@@ -18,6 +19,7 @@ def wrap_name_randomizer(func):
         return pick_randomized_name(names)
 
     return inner
+
 
 @wrap_name_randomizer
 def pick_randomized_name(names: List[str]):

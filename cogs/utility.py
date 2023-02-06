@@ -15,13 +15,15 @@ async def generate_whois_embed(member: discord.Member):
     embed.set_thumbnail(url=member.display_avatar.url)
 
     embed.add_field(name="Username", value=member.name)
-    embed.add_field(name="Roles", value=", ".join(
-        [r.mention for r in member.roles]))
+    embed.add_field(name="Roles",
+                    value=", ".join([r.mention for r in member.roles]))
 
-    embed.add_field(name="Creation", value=member.created_at.strftime(
-        TIMEFORMAT), inline=False)
-    embed.add_field(name="Joined", value=member.joined_at.strftime(
-        TIMEFORMAT), inline=False)
+    embed.add_field(name="Creation",
+                    value=member.created_at.strftime(TIMEFORMAT),
+                    inline=False)
+    embed.add_field(name="Joined",
+                    value=member.joined_at.strftime(TIMEFORMAT),
+                    inline=False)
 
     return embed
 
@@ -44,7 +46,8 @@ async def menu_whois(interaction: discord.Interaction, member: discord.Member):
 
 
 @app_commands.context_menu(name="Avatar")
-async def menu_avatar(interaction: discord.Interaction, member: discord.Member):
+async def menu_avatar(interaction: discord.Interaction,
+                      member: discord.Member):
     "Get a whois over contex menu"
 
     embed = await generate_whois_embed(member)
@@ -58,10 +61,7 @@ class Utility(commands.Cog):
         self.client = client
         # client.help_command = HelpCommand()
         # client.help_command.cog = self
-        client.add_context_menus([
-            menu_whois,
-            menu_avatar
-        ])
+        client.add_context_menus([menu_whois, menu_avatar])
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -82,10 +82,10 @@ class Utility(commands.Cog):
         embed_message.title = self.client.user.name
 
         embed_message.add_field(
-            name="Github Repo", value="https://github.com/ChinoCodeDemon/Aeses")
-        embed_message.add_field(
-            name="Support Server", value="https://discord.gg/StgE5Z4bFB"
-        )
+            name="Github Repo",
+            value="https://github.com/ChinoCodeDemon/Aeses")
+        embed_message.add_field(name="Support Server",
+                                value="https://discord.gg/StgE5Z4bFB")
 
         embed_message.add_field(name="Framework", value="discord.py")
 
@@ -103,13 +103,16 @@ class Utility(commands.Cog):
         embed = discord.Embed(
             title="Invite",
             # pylint: disable=line-too-long
-            description=f"You can use this link this link to invite the bot into your server:\n{link}"
+            description=
+            f"You can use this link this link to invite the bot into your server:\n{link}"
         )
 
         await inter.response.send_message(embed=embed)
 
     @app_commands.command()
-    async def avatar(self, inter: discord.Interaction, user: discord.User = None):
+    async def avatar(self,
+                     inter: discord.Interaction,
+                     user: discord.User = None):
         "Give a better view on avatars"
         # assume the target to be the author if not given.
         if not user:
@@ -120,7 +123,9 @@ class Utility(commands.Cog):
 
     @app_commands.command()
     @commands.guild_only()
-    async def whois(self, inter: discord.Interaction, member: discord.Member = None):
+    async def whois(self,
+                    inter: discord.Interaction,
+                    member: discord.Member = None):
         "Gives you quick info about a member or yourself, useful for moderation."
         # assume the target to be the author if not given.
         if not member:
@@ -133,8 +138,8 @@ class Utility(commands.Cog):
     async def update_bot_statistics(self):
         "Updates statistics about the bot."
         if self.client.application_id:
-            bots_gg.update_statistics(
-                self.client.application_id, len(self.client.guilds))
+            bots_gg.update_statistics(self.client.application_id,
+                                      len(self.client.guilds))
 
 
 async def setup(client: commands.Bot):

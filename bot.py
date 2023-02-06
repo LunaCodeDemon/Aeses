@@ -19,27 +19,22 @@ ACTIVITY_OVERWRITE = os.environ.get("ACTIVITY_OVERWRITE")
 
 activities: List[Callable[[discord.Client], None]] = [
     # show the amount of users the bot listens to
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"{len(client.users)} users"),
+    lambda client: discord.Activity(type=discord.ActivityType.listening,
+                                    name=f"{len(client.users)} users"),
     # show the amount of guilds the bot listens to
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"{len(client.guilds)} guilds"),
+    lambda client: discord.Activity(type=discord.ActivityType.listening,
+                                    name=f"{len(client.guilds)} guilds"),
     # few example commands
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"/whois {pick_randomized_name()}"
-    ),
-    lambda client: discord.Activity(
-        type=discord.ActivityType.listening,
-        name=f"/avatar {pick_randomized_name()}"
-    )
+    lambda client: discord.Activity(type=discord.ActivityType.listening,
+                                    name=f"/whois {pick_randomized_name()}"),
+    lambda client: discord.Activity(type=discord.ActivityType.listening,
+                                    name=f"/avatar {pick_randomized_name()}")
 ]
 
 
 class AesesBot(commands.Bot):
     "Custom class for Aeses bot"
+
     async def load_modules_from_folder(self, folder: str):
         "Loads modules from a folder."
         # go through every file in the folder.
@@ -64,9 +59,7 @@ class AesesBot(commands.Bot):
         else:
             # show the status that is written in the ACTIVITY_OVERWRITE enviroment variable.
             await self.change_presence(activity=discord.Activity(
-                type=discord.ActivityType.custom,
-                name=ACTIVITY_OVERWRITE
-            ))
+                type=discord.ActivityType.custom, name=ACTIVITY_OVERWRITE))
 
     @loop_status.before_loop
     async def before_loop_status(self):
@@ -100,7 +93,8 @@ class AesesBot(commands.Bot):
 
         await client.process_commands(message)
 
-    async def on_message_edit(self, _: discord.Message, updated: discord.Message):
+    async def on_message_edit(self, _: discord.Message,
+                              updated: discord.Message):
         "This will be triggered whenever a user edits a message."
         if updated.author == client.user:
             return
@@ -111,10 +105,12 @@ class AesesBot(commands.Bot):
 
     async def on_member_update(self, _: discord.Member, after: discord.Member):
         "React on updates of the member"
-        client_member: discord.Member = await after.guild.fetch_member(client.user.id)
+        client_member: discord.Member = await after.guild.fetch_member(
+            client.user.id)
 
         # check the user if the client has the permission to change the nickname.
-        if client_member.guild_permissions.manage_nicknames and check_nickname(after):
+        if client_member.guild_permissions.manage_nicknames and check_nickname(
+                after):
             try:
                 # try to change the nickname depending on if the member already has a nick.
                 if after.nick is None:
@@ -140,7 +136,8 @@ class AesesBot(commands.Bot):
         if not self.user.avatar:
             await self.set_profile_picture(path)
 
-    async def on_command_error(self, ctx: commands.Context, error: BaseException):
+    async def on_command_error(self, ctx: commands.Context,
+                               error: BaseException):
         "Handles errors for every command."
         if isinstance(error, commands.CommandInvokeError):
             error = error.original
@@ -156,4 +153,5 @@ class AesesBot(commands.Bot):
 
 
 client = AesesBot(command_prefix=DEFAULT_PREFIX,
-                  intents=discord.Intents.all(), help_command=None)
+                  intents=discord.Intents.all(),
+                  help_command=None)
