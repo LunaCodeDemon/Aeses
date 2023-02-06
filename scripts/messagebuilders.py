@@ -24,5 +24,8 @@ async def create_moderation_embed(user: discord.User, action: str, reason: str):
 
 def generate_filtertype_listing(filters: List[FilterType]):
     "Generate a string from multiple filtertypes."
-    result = "\n".join([f"- {ft.value}" for ft in filters])
+    result = "\n".join([
+        f"- {ft.value}" for ft in filters
+        ])
+
     return result or "none"

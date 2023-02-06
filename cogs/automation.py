@@ -99,7 +99,8 @@ class Automation(commands.Cog):
 
     # @tasks.loop(hours=24)
     # async def daily_update(self):
-    #     pass  # TODO: implement daily
+    #     # TODO: implement daily
+    #     pass
 
     class Log(commands.GroupCog, name="log"):
         """
@@ -155,6 +156,7 @@ class Automation(commands.Cog):
         log_channel_data = log_channel_data[0]
         channel = member.guild.get_channel(log_channel_data.channel_id)
 
+        # TODO: custom welcome message.
         text = "Welcome {member} to our nice corner."
         embed = await create_welcome_embed(member, text)
 
@@ -169,6 +171,7 @@ class Automation(commands.Cog):
         if audit_entry.target.id == member.id and audit_entry.action == discord.AuditLogAction.kick:
             kick_log_channel_data = sqldata.get_logchannel(
                 member.guild.id, sqldata.LogType.MODERATION)
+
             if kick_log_channel_data:
                 kick_log_channel = member.guild.get_channel(
                     kick_log_channel_data[0].channel_id)

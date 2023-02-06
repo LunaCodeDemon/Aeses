@@ -16,12 +16,17 @@ def generate_emoji_embed(action: str, myself: str, target: str = None):
             config['emotes'][action]['with_target']
             .format(myself=myself, target=target)
         )
+
     else:
         embed.description = (
             config['emotes'][action]['alone']
             .format(myself=myself)
         )
+
+    embed.color = discord.Color(0xff3300)
+
     embed.set_image(url=choice(emote_links[action]))
+
     return embed
 
 
@@ -36,43 +41,6 @@ def emoji_command(func):
     return decorator
 
 
-async def emote_menu_interaction(action: str, inter: discord.Interaction, member: discord.Member):
-    "Emote standard interaction"
-    embed = generate_emoji_embed(
-        action, inter.user.mention, member.mention)
-    await inter.response.send_message(embed=embed)
-
-
-@app_commands.context_menu(name="Hug")
-async def menu_hug(interaction: discord.Integration, member: discord.Member):
-    "Hug someone via menu"
-    await emote_menu_interaction("hug", interaction, member)
-
-
-@app_commands.context_menu(name="Smile")
-async def menu_smile(interaction: discord.Interaction, member: discord.Member):
-    "Smile at someone via menu"
-    await emote_menu_interaction("smile", interaction, member)
-
-
-@app_commands.context_menu(name="Smug")
-async def menu_smug(interaction: discord.Interaction, member: discord.Member):
-    "Smug at someone via menu"
-    await emote_menu_interaction("smug", interaction, member)
-
-
-@app_commands.context_menu(name="Cry")
-async def menu_cry(interaction: discord.Integration, member: discord.Member):
-    "Cry at someone via menu"
-    await emote_menu_interaction("cry", interaction, member)
-
-
-@app_commands.context_menu(name="Pat")
-async def menu_pat(interaction: discord.Interaction, member: discord.Member):
-    "Pat someone via menu"
-    await emote_menu_interaction("pat", interaction, member)
-
-
 class Emotes(commands.Cog):
     """
         A command group containing emote commands.
@@ -82,15 +50,8 @@ class Emotes(commands.Cog):
 
     def __init__(self, client: AesesBot) -> None:
         self.client = client
-        # client.add_context_menus([
-        #     menu_hug,
-        #     menu_cry,
-        #     menu_smile,
-        #     menu_pat,
-        #     menu_smug
-        # ])
 
-    # repeating hybrid emote commands that are using the @emoji_command decorator.
+    # repeating app emote commands that are using the @emoji_command decorator.
 
     @app_commands.command()
     @emoji_command

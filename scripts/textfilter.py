@@ -13,8 +13,10 @@ from scripts.sqldata import FilterType, get_filterconfig
 def get_active_filters(guild_id: int):
     "Get only the active filters"
     filterconfigs = get_filterconfig(guild_id)
+
     if not filterconfigs:
         return []
+
     return [f.filter_type for f in filterconfigs if f.active]
 
 
