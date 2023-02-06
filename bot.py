@@ -1,5 +1,6 @@
 "Bot client module, contains configuration of bot and simple listeners."
 
+# pylint: disable=no-value-for-parameter
 import logging
 from http.client import HTTPException
 import os
@@ -11,6 +12,7 @@ from discord.ext import commands, tasks
 from scripts.conversion import str2only_ascii
 from scripts.textfilter import check_nickname, check_message
 from scripts.errors import error_dictionary
+from scripts.name_randomizer import pick_randomized_name
 
 DEFAULT_PREFIX = os.environ.get("PREFIX", "!")
 ACTIVITY_OVERWRITE = os.environ.get("ACTIVITY_OVERWRITE")
@@ -24,6 +26,15 @@ activities: List[Callable[[discord.Client], None]] = [
     lambda client: discord.Activity(
         type=discord.ActivityType.listening,
         name=f"{len(client.guilds)} guilds"),
+    # few example commands
+    lambda client: discord.Activity(
+        type=discord.ActivityType.listening,
+        name=f"/whois {pick_randomized_name()}"
+    ),
+    lambda client: discord.Activity(
+        type=discord.ActivityType.listening,
+        name=f"/avatar {pick_randomized_name()}"
+    )
 ]
 
 
