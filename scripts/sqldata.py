@@ -242,7 +242,7 @@ def get_filterconfig(
         guild_id: int,
         filter_type: FilterType = None) -> Optional[List[FilterConfig]]:
     "Get filter config for guild, can be multiple."
-    query = ("SELECT * FROM filterconfig WHERE guild_id = :guild_id ")
+    query = "SELECT * FROM filterconfig WHERE guild_id = :guild_id "
     params = {"guild_id": guild_id}
     if filter_type:
         query += "AND filter_type = :filter_type"
