@@ -27,7 +27,7 @@ jobs:
         pip install -U pylint pytest-asyncio
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=fixme $(git ls-files '*.py')
+        pylint $(git ls-files '*.py')
     - name: Test with PyTest
       env:
         DEBUG: true
