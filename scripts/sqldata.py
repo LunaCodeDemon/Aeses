@@ -111,7 +111,6 @@ def restore_reminders() -> List[Reminder]:
         ]
 
 
-# TODO: create table for DailyAction
 # TODO: add get function for daiyaction
 # TODO: add update function for dailyaction
 # TODO: add insert function for dailyaction
@@ -131,6 +130,22 @@ class DailyAction:
     data: str  # search term or tags
     created_at: datetime
 
+def create_table_dailyaction():
+    """
+        Create a table for DailyActions.
+    """
+    with engine.connect() as conn:
+        conn.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS dailyaction(
+                    actiontype VARCHAR(15) NOT NULL,
+                    channel_id BIGINT NOT NULL,
+                    guild_id BIGINT NOT NULL,
+                    data VARCHAR(1024),
+                    created_at DATE DEFAULT CURRENT_DATE
+                );
+            """)
+        )
 
 class LogType(Enum):
     "Types for logging."
