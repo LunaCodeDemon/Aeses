@@ -16,7 +16,7 @@ def wrap_name_randomizer(func):
 
     @functools.wraps(func)
     def inner():
-        return pick_randomized_name(names)
+        return func(names)
 
     return inner
 

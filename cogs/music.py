@@ -1,3 +1,4 @@
+
 """
     This Module adds commands that allow listening to radio and music in guild channels.
 """
@@ -141,6 +142,7 @@ class Music(commands.Cog):
         try:
             audio_stream = sources_on_guild.get(interaction.guild_id)
             await audio_stream.vc.disconnect()
+
             await interaction.response.send_message("Disconnected from channel"
                                                     )
         except discord.errors.ClientException as err:
@@ -159,6 +161,7 @@ class Music(commands.Cog):
 
         # send message if not exists
         if not audio_stream:
+
             await interaction.response.send_message(
                 "There is no audio stream in this guild.")
             return
