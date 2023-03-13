@@ -15,8 +15,8 @@ def wrap_name_randomizer(func):
         names = file.readlines()
 
     @functools.wraps(func)
-    def inner():
-        return pick_randomized_name(names)
+    def inner(*args, **kwargs):
+        return func(names)
 
     return inner
 
@@ -27,3 +27,4 @@ def pick_randomized_name(names: List[str]):
         A function that randomly picks a name from the name list.
     """
     return random.choice(names)
+
