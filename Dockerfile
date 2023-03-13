@@ -7,12 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-RUN set -x \
-    && add-apt-repository ppa:mc3man/trusty-media \
-    && apt-get update \
-    && apt-get dist-upgrade \
-    && apt-get install -y --no-install-recommends \
-        ffmpeg
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg
 
 # Install pip requirements
 COPY requirements.txt .
