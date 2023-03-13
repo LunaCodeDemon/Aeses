@@ -32,6 +32,7 @@ def search_radio(name: str) -> List[RadioEntry]:
     """
         Search a radio with a partial name.
     """
+    # TODO: use ip instead of general domain.
     #api_ip = choice(get_ip_for_radio_browser())
     #print(api_ip)
     result = httpx.get("http://all.api.radio-browser.info/json/stations/search",
