@@ -185,8 +185,11 @@ async def setup(bot: commands.Bot):
     """
         Setup function for music module
     """
-    opus.load_opus('libopus.so')
-    if opus.is_loaded():
-        await bot.add_cog(Music(bot))
-    else:
-        print("Wasn't able to load opus.")
+    try:
+        opus.load_opus('libopus.so')
+        if opus.is_loaded():
+            await bot.add_cog(Music(bot))
+        else:
+            print("Opus isn't loaded, not integrating music module.")
+    except (opus.OpusError, opus.OpusNotLoaded) as err:
+        print(f"Somethig wen't wrong loading the while loading the music module: {err}")
