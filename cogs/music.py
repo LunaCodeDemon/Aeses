@@ -31,14 +31,21 @@ async def play_from_url(interaction: discord.Interaction, source_url: str):
     """
         Function that plays music inside a channel..
     """
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.defer()
     voice_channel = interaction.user.voice.channel
 
-    # grab the voice client that is available.
-    try:
-        voice_client = await voice_channel.connect(self_deaf=True)
-    except (discord.GatewayNotFound, discord.ConnectionClosed):
-        voice_client = sources_on_guild.get(interaction.guild_id).vc
+    old_audio_stream = sources_on_guild.get(interaction.guild_id)
+
+    if old_audio_stream:
+        voice_client = old_audio_stream.vc
+        voice_client.stop()
+    else:
+        # grab the voice client that is available.
+        try:
+            voice_client = await voice_channel.connect(self_deaf=True)
+        except (discord.GatewayNotFound, discord.ConnectionClosed):
+            print(f"Failed to create or find voice_client in guild with id {interaction.guild_id}")
+            interaction.followup.send("Failed to create audio stream.")
 
     # creates an audio source object
     audio_source = discord.FFmpegPCMAudio(
@@ -125,6 +132,7 @@ class Music(commands.Cog):
                     """
                         callback for the selection within the view.
                     """
+                    self.stop()
                     await play_from_url(interaction, select.values[0])
 
             view = RadioView()
