@@ -1,14 +1,10 @@
-FROM python:3.8
+FROM python:3.14-slim
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg libopus-dev
-
 
 WORKDIR /app
 COPY . /app

@@ -2,7 +2,7 @@ hikari
 hikari-tanjun
 hikari-ongaku
 emoji==2.1.0
-httpx==0.23.0
+httpx
 numpy
 pytest==7.1.2
 python-dotenv==0.21.0

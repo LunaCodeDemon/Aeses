@@ -71,6 +71,10 @@ async def random_post(tags: List[str] = None) -> SafebooruPost:
 
     # parse the xml output.
     tree = ET.fromstring(result.text)
+
+    if len(tree) == 0:
+        raise SafebooruNothingFound(tags=tags)
+
     post_data = tree[0].attrib
 
     # return post.
@@ -79,5 +83,5 @@ async def random_post(tags: List[str] = None) -> SafebooruPost:
         file_url=post_data['file_url'],
         post_url=
         f"https://safebooru.org/index.php?page=post&s=view&id={post_data['id']}",
-        has_comments=post_data['has_comments'],
+        has_comments=post_data['has_comments'] == 'true',
         tags=post_data['tags'])

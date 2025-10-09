@@ -7,34 +7,6 @@ from configloader import config
 
 component = tanjun.Component()
 
-def create_pokemon_embed(pokemon_data: dict) -> hikari.Embed:
-    """Generates an embed from Pokémon data."""
-    if not pokemon_data:
-        return None
-
-    name = pokemon_data.get('name', 'Unknown').capitalize()
-    poke_id = pokemon_data.get('id', 'N/A')
-
-    embed = hikari.Embed(
-        title=name,
-        description=f"ID: {poke_id}"
-    )
-
-    if sprites := pokemon_data.get('sprites'):
-        if front_default := sprites.get('front_default'):
-            embed.set_thumbnail(front_default)
-
-    if types_data := pokemon_data.get('types'):
-        types = ", ".join([t['type']['name'] for t in types_data])
-        embed.add_field("Types", types, inline=True)
-
-    if stats_data := pokemon_data.get('stats'):
-        for stat in stats_data:
-            stat_name = stat['stat']['name'].replace('-', ' ').capitalize()
-            embed.add_field(stat_name, str(stat['base_stat']), inline=True)
-
-    return embed
-
 @component.with_slash_command
 @tanjun.with_str_slash_option("name", "The name of the Pokémon to search for.", default=None)
 @tanjun.as_slash_command("pokemon", "Searches for a Pokémon.")
@@ -44,10 +16,11 @@ async def pokemon_command(ctx: tanjun.abc.Context, name: str | None):
 
     pokemon_data = pokeapi.get_random_pokemon() if not name else pokeapi.get_pokemon(name.lower())
 
-    embed = create_pokemon_embed(pokemon_data)
+    embed = pokeapi.create_pokemon_embed(pokemon_data)
 
     if not embed:
-        await ctx.create_followup(config['dialogs']['pokemon']['on_fail'].format(pokename=name or "a random pokemon"))
+        fail_message = config['dialogs']['pokemon']['on_fail'].format(pokename=name) if name else "Could not find a random Pokémon."
+        await ctx.create_followup(fail_message)
         return
 
     await ctx.create_followup(embed=embed)
@@ -69,7 +42,7 @@ async def booru_command(ctx: tanjun.abc.Context, tags: str):
     embed.title = f"Post: {post.post_id}"
     embed.description = f"You can find the post here: {post.post_url}"
     embed.set_footer(text="Post has comments" if post.has_comments else "Post has no comments.")
-    embed.set_image(url=post.file_url)
+    embed.set_image(post.file_url)
 
     await ctx.create_followup(embed=embed)
 

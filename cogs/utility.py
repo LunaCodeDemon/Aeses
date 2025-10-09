@@ -1,8 +1,8 @@
 "Core command group (commands ex. info, help)"
+import datetime
 import hikari
 import tanjun
 from api import bots_gg
-from tanjun.schedules import every
 
 TIMEFORMAT = "%m/%d/%Y, %H:%M:%S"
 
@@ -77,21 +77,22 @@ async def whois_command(ctx: tanjun.abc.Context, member: hikari.Member | None):
     embed = await generate_whois_embed(target_member)
     await ctx.respond(embed=embed)
 
-@component.with_user_menu
+@component.with_command
 @tanjun.as_user_menu("Whois", dm_enabled=False)
 async def whois_menu(ctx: tanjun.abc.MenuContext, member: hikari.Member):
     "Get a whois over contex menu"
     embed = await generate_whois_embed(member)
     await ctx.respond(embed=embed)
 
-@component.with_user_menu
+@component.with_command
 @tanjun.as_user_menu("Avatar")
 async def avatar_menu(ctx: tanjun.abc.MenuContext, user: hikari.User):
     "Get an avatar over contex menu"
     embed = await generate_avatar_embed(user)
     await ctx.respond(embed=embed)
 
-@component.with_schedule(every(minutes=30))
+@component.with_schedule
+@tanjun.as_interval(datetime.timedelta(minutes=30))
 async def update_bot_statistics(bot: hikari.GatewayBot = tanjun.inject()):
     "Updates statistics about the bot."
     if bot.application:
