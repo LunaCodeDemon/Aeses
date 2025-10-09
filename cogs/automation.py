@@ -2,13 +2,12 @@
 Cog module for automations.
 This includes reminder and dailies
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from typing import List
 import numpy
 import hikari
 import tanjun
-from tanjun.schedules import every
 from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
 
@@ -42,13 +41,13 @@ async def reminder_command(ctx: tanjun.abc.Context, note: str, seconds: int):
 log_group = tanjun.slash_command_group("log", "Commands for logging purposes")
 component.add_slash_command(log_group)
 
-@log_group.as_sub_command("add", "Add a log channel to the list.")
-@tanjun.with_author_permission_check(hikari.Permissions.ADMINISTRATOR)
-@tanjun.with_channel_slash_option("channel", "The channel to set as the log channel.", default=None)
 @tanjun.with_str_slash_option("logtype", "The type of log to add.", choices={
     "Welcome messages": sqldata.LogType.WELCOME.value,
     "Moderation events": sqldata.LogType.MODERATION.value
 })
+@tanjun.with_channel_slash_option("channel", "The channel to set as the log channel.", default=None)
+@tanjun.with_author_permission_check(hikari.Permissions.ADMINISTRATOR)
+@log_group.as_sub_command("add", "Add a log channel to the list.")
 async def log_add_command(ctx: tanjun.abc.Context, logtype: str, channel: hikari.InteractionChannel | None):
     """Add a log channel to the list."""
     target_channel = channel or await ctx.fetch_channel()
@@ -69,7 +68,8 @@ async def log_list_command(ctx: tanjun.abc.Context):
         embed.add_field(name=logchannel.logtype.name, value=f"<#{logchannel.channel_id}>")
     await ctx.respond(embed=embed)
 
-@component.with_schedule(every(seconds=1))
+@component.with_schedule
+@tanjun.as_interval(timedelta(seconds=1))
 async def reminder_update(bot: hikari.GatewayBot = tanjun.inject()):
     """Sends reminders to channels and deletes them."""
     timestamp = datetime.now()
