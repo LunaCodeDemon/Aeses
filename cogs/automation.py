@@ -2,208 +2,160 @@
 Cog module for automations.
 This includes reminder and dailies
 """
-from ctypes import Union
 from datetime import datetime
 import logging
 from typing import List
 import numpy
-import discord
-from discord import app_commands
-from discord.ext import commands, tasks
+import hikari
+import tanjun
+from tanjun.schedules import every
 from scripts.messagebuilders import create_moderation_embed, create_welcome_embed
 from scripts import sqldata
 
+component = tanjun.Component(name="automation")
 
-class Automation(commands.Cog):
-    "Cog for automations like reminder and dailies"
+@component.with_slash_command
+@tanjun.with_str_slash_option("note", "The note for the reminder.")
+@tanjun.with_int_slash_option("seconds", "The number of seconds from now to set the reminder for.", min_value=1)
+@tanjun.as_slash_command("reminder", "(Instable) Set a reminder that will send you a message in a given time.")
+async def reminder_command(ctx: tanjun.abc.Context, note: str, seconds: int):
+    """(Instable) You can set a reminder that will send you a message in a given time."""
+    await ctx.defer(ephemeral=True)
 
-    reminders: List[sqldata.Reminder] = None
+    timestamp = numpy.datetime64(datetime.now())
+    trigger_time = timestamp + numpy.timedelta64(seconds, "s")
 
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
-        sqldata.create_table_reminder()
-        self.reminders = sqldata.restore_reminders()
+    rem = sqldata.Reminder(
+        note=note,
+        user_id=ctx.author.id,
+        guild_id=ctx.guild_id,
+        channel_id=ctx.channel_id,
+        direct=True,  # Assuming direct message for simplicity, can be changed.
+        created_at=timestamp,
+        trigger_at=trigger_time
+    )
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        "This gets triggered if the bot is ready"
-        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
-        # pylint: disable=no-member
-        await self.reminder_update.start()
-        # await self.daily_update.start()
+    sqldata.insert_reminder(rem)
 
-    async def cog_unload(self) -> None:
-        # no-member has to be disabled, since pylint has confuses tasks with normal functions.
-        # pylint: disable=no-member
-        await self.reminder_update.stop()
-        # await self.daily_update.stop()
-        await super().cog_unload()
+    await ctx.create_followup(f"Reminder scheduled for {trigger_time}", ephemeral=True)
 
-    # it cannot be prevented that this command has a lot of options.
-    @app_commands.command()
-    @app_commands.guild_only()
-    # pylint: disable=too-many-arguments
-    async def reminder(self, inter: discord.Interaction, note: str,
-                       seconds: int):
-        """
-            (Instable) You can set a reminder that will send you a message in a given time.
-        """
-        await inter.response.defer(ephemeral=True, thinking=True)
-        timestamp = numpy.datetime64(datetime.now())
+log_group = tanjun.slash_command_group("log", "Commands for logging purposes")
+component.add_slash_command(log_group)
 
-        added_time = numpy.timedelta64(seconds, "s")
-        if added_time <= 0:
-            await inter.followup.send(
-                "There is no time given for the reminder.", ephemeral=True)
-            return
+@log_group.as_sub_command("add", "Add a log channel to the list.")
+@tanjun.with_author_permission_check(hikari.Permissions.ADMINISTRATOR)
+@tanjun.with_channel_slash_option("channel", "The channel to set as the log channel.", default=None)
+@tanjun.with_str_slash_option("logtype", "The type of log to add.", choices={
+    "Welcome messages": sqldata.LogType.WELCOME.value,
+    "Moderation events": sqldata.LogType.MODERATION.value
+})
+async def log_add_command(ctx: tanjun.abc.Context, logtype: str, channel: hikari.InteractionChannel | None):
+    """Add a log channel to the list."""
+    target_channel = channel or await ctx.fetch_channel()
+    ltype = sqldata.LogType(logtype)
+    sqldata.insert_logchannel(ctx.guild_id, target_channel.id, ltype)
+    await ctx.respond(f"Activated {logtype} channel.")
 
-        trigger_time = timestamp + added_time
+@log_group.as_sub_command("list", "List active log channels.")
+async def log_list_command(ctx: tanjun.abc.Context):
+    """List active log channels."""
+    channels = sqldata.get_logchannel(ctx.guild_id)
+    if not channels:
+        await ctx.respond("No log channels selected.")
+        return
 
-        rem = sqldata.Reminder(note, inter.user.id, inter.guild_id,
-                               inter.channel_id, True, timestamp, trigger_time)
+    embed = hikari.Embed(title="Active log channels.")
+    for logchannel in channels:
+        embed.add_field(name=logchannel.logtype.name, value=f"<#{logchannel.channel_id}>")
+    await ctx.respond(embed=embed)
 
-        self.reminders.append(rem)
+@component.with_schedule(every(seconds=1))
+async def reminder_update(bot: hikari.GatewayBot = tanjun.inject()):
+    """Sends reminders to channels and deletes them."""
+    timestamp = datetime.now()
+    reminders = sqldata.restore_reminders()
 
-        await inter.followup.send(f"Reminder scheduled for {trigger_time}",
-                                  ephemeral=True)
-        sqldata.insert_reminder(rem)
+    if not reminders:
+        return
 
-    @tasks.loop(seconds=1)
-    async def reminder_update(self):
-        "Sends reminders to channels and deletes them."
-        if not self.reminders:
-            return
-        timestamp_raw = datetime.now()
-        timestamp = numpy.datetime64(timestamp_raw)
-        for remind in self.reminders:
-            # guard clause using the trigger time.
-            if remind.trigger_at > timestamp:
-                continue
+    reminders_to_process = [r for r in reminders if numpy.datetime64(r.trigger_at) <= numpy.datetime64(timestamp)]
 
-            user = self.client.get_user(remind.user_id)
-            target: Union[discord.TextChannel,
-                          discord.User] = self.client.get_channel(
-                              remind.channel_id)
-            if remind.direct:
-                target = user
+    if not reminders_to_process:
+        return
+
+    for remind in reminders_to_process:
+        try:
+            user = await bot.rest.fetch_user(remind.user_id)
+            target = await bot.rest.fetch_channel(remind.channel_id)
+
             if not target:
-                logging.warning("Reminder without target is triggered.")
+                logging.warning(f"Reminder target channel {remind.channel_id} not found.")
                 continue
 
-            embed = discord.Embed(title="Reminder", description=remind.note)
+            embed = hikari.Embed(title="Reminder", description=remind.note)
+            await target.send(user.mention, embed=embed)
 
-            self.reminders.remove(remind)
+        except (hikari.ForbiddenError, hikari.NotFoundError) as e:
+            logging.warning(f"Could not send reminder {remind.id}: {e}")
+        except Exception as e:
+            logging.error(f"An unexpected error occurred while processing reminder {remind.id}: {e}")
 
-            if hasattr(target, "send"):
-                await target.send(user.mention, embed=embed)
+    sqldata.cleanup_reminders(timestamp)
 
-        self.reminders.clear()
-        sqldata.cleanup_reminders(timestamp_raw)
+@component.with_listener(hikari.MemberJoinEvent)
+async def on_member_join(event: hikari.MemberJoinEvent, bot: hikari.GatewayBot = tanjun.inject()):
+    """Handles member joins."""
+    log_channel_data = sqldata.get_logchannel(event.guild_id, sqldata.LogType.WELCOME)
+    if not log_channel_data:
+        return
 
-    # @tasks.loop(hours=24)
-    # async def daily_update(self):
-    #     # TODO: implement daily
-    #     pass
+    channel = await bot.rest.fetch_channel(log_channel_data[0].channel_id)
+    text = "Welcome {member} to our nice corner."
+    embed = await create_welcome_embed(event.member, text)
+    await channel.send(embed=embed)
 
-    class Log(commands.GroupCog, name="log"):
-        """
-            Commands for logging purposes
-        """
-        @app_commands.command(name="add")
-        @commands.guild_only()
-        @commands.has_permissions(administrator=True)
-        @app_commands.choices(logtype=[
-            app_commands.Choice(name="Welcome messages",
-                                value=sqldata.LogType.WELCOME.value),
-            app_commands.Choice(name="Moderations events",
-                                value=sqldata.LogType.MODERATION.value)
-        ])
-        async def log_add(self,
-                          inter: discord.Interaction,
-                          logtype: str,
-                          channel: discord.TextChannel = None):
-            "Add a log channel to the list."
-            if not channel:
-                channel = inter.channel
-            ltype = sqldata.LogType(logtype)
-            sqldata.insert_logchannel(channel.guild.id, channel.id, ltype)
-            await inter.response.send_message(f"Activated {logtype} channel.")
-
-        @app_commands.command(name="list")
-        @commands.guild_only()
-        async def log_list(self, inter: discord.Interaction):
-            "List active log channels."
-            channels = sqldata.get_logchannel(inter.guild.id)
-            if not channels:
-                await inter.response.send_message("No log channels selected.")
+@component.with_listener(hikari.MemberLeaveEvent)
+async def on_member_leave(event: hikari.MemberLeaveEvent, bot: hikari.GatewayBot = tanjun.inject()):
+    """React when a member leaves or gets kicked"""
+    try:
+        async for entry in bot.rest.fetch_audit_log(
+            guild=event.guild_id,
+            action_type=hikari.AuditLogEventType.MEMBER_KICK
+        ).limit(1):
+            if entry.target == event.user:
+                log_channel_data = sqldata.get_logchannel(event.guild_id, sqldata.LogType.MODERATION)
+                if log_channel_data:
+                    channel = await bot.rest.fetch_channel(log_channel_data[0].channel_id)
+                    embed = await create_moderation_embed(event.user, "kick", entry.reason or "No reason given")
+                    await channel.send(embed=embed)
                 return
+    except hikari.ForbiddenError:
+        logging.warning(f"Missing permissions to fetch audit log in guild {event.guild_id}")
+    # This is a leave event, not a kick. Handle if necessary.
 
-            embed = discord.Embed(title="Active log channels.")
-            for logchannel in channels:
-                embed.add_field(name=logchannel.logtype.name,
-                                value=f"<#{logchannel.channel_id}>")
-            await inter.response.send_message(embed=embed)
+@component.with_listener(hikari.BanCreateEvent)
+async def on_member_ban(event: hikari.BanCreateEvent, bot: hikari.GatewayBot = tanjun.inject()):
+    """React on ban."""
+    reason = "No reason found"
+    try:
+        async for entry in bot.rest.fetch_audit_log(
+            guild=event.guild_id,
+            action_type=hikari.AuditLogEventType.MEMBER_BAN_ADD
+        ).limit(1):
+            if entry.target == event.user:
+                reason = entry.reason or "No reason given"
+                break
+    except hikari.ForbiddenError:
+        logging.warning(f"Missing permissions to fetch audit log in guild {event.guild_id}")
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
-        "Handles member joins."
-        log_channel_data = sqldata.get_logchannel(member.guild.id,
-                                                  sqldata.LogType.WELCOME)
-
-        if not log_channel_data:
-            return
-
-        log_channel_data = log_channel_data[0]
-        channel = member.guild.get_channel(log_channel_data.channel_id)
-
-        # TODO: custom welcome message.
-        text = "Welcome {member} to our nice corner."
-        embed = await create_welcome_embed(member, text)
-
+    log_channel_data = sqldata.get_logchannel(event.guild_id, sqldata.LogType.MODERATION)
+    if log_channel_data:
+        channel = await bot.rest.fetch_channel(log_channel_data[0].channel_id)
+        embed = await create_moderation_embed(event.user, "ban", reason)
         await channel.send(embed=embed)
 
-    @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member):
-        "React when a member leaves or gets kicked"
-        # pylint: disable=unnecessary-dunder-call
-        audit_entry: discord.AuditLogEntry = await member.guild.audit_logs(
-            limit=1).__anext__()
-
-        if audit_entry.target.id == member.id and audit_entry.action == discord.AuditLogAction.kick:
-            kick_log_channel_data = sqldata.get_logchannel(
-                member.guild.id, sqldata.LogType.MODERATION)
-
-            if kick_log_channel_data:
-                kick_log_channel = member.guild.get_channel(
-                    kick_log_channel_data[0].channel_id)
-                embed = await create_moderation_embed(
-                    member, "kick", audit_entry.reason or "No reason given")
-                await kick_log_channel.send(embed=embed)
-        else:
-            # leaving member
-            pass
-
-    @commands.Cog.listener()
-    async def on_member_ban(self, guild: discord.Guild, user: discord.User):
-        "React on ban."
-        reason = "No reason found"
-
-        # dunder linting has to be disabled, since anext() doesn't exist in v3.8
-        # pylint: disable=unnecessary-dunder-call
-        audit_entry: discord.AuditLogEntry = await guild.audit_logs(
-            limit=1).__anext__()
-        if audit_entry.action == discord.AuditLogAction.ban and audit_entry.target.id == user.id:
-            reason = audit_entry.reason or "No reason given"
-
-        ban_log_channel_data = sqldata.get_logchannel(
-            guild.id, sqldata.LogType.MODERATION)
-        if ban_log_channel_data:
-            ban_log_channel = guild.get_channel(
-                ban_log_channel_data[0].channel_id)
-            embed = await create_moderation_embed(user, "ban", reason)
-            await ban_log_channel.send(embed=embed)
-
-
-async def setup(client: commands.Bot):
-    "The usual setup function."
-    await client.add_cog(Automation(client))
+@tanjun.as_loader
+def load_component(client: tanjun.Client):
+    "Loads the automation component."
+    sqldata.create_table_reminder()
+    client.add_component(component.copy())

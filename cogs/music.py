@@ -1,195 +1,121 @@
-
 """
-    This Module adds commands that allow listening to radio and music in guild channels.
+This Module adds commands that allow listening to radio and music in guild channels.
 """
-
-from typing import NamedTuple
-from typing import Dict, List
-import discord
-from discord import app_commands
-from discord import opus
-from discord import ui
-from discord.ext import commands
-from scripts import textfilter
+import hikari
+import tanjun
+import ongaku
 from api import radio_browser
+from scripts import textfilter
 
+component = tanjun.Component(name="music")
 
-class AudioStream(NamedTuple):
-    """
-        Structured tuple for audio streams
-    """
-    url: str
-    source: discord.FFmpegPCMAudio
-    transform: discord.PCMVolumeTransformer
-    vc: discord.VoiceClient
+@component.with_slash_command
+@tanjun.with_str_slash_option("query", "A search query or a direct URL.")
+@tanjun.as_slash_command("play", "Play music from a web stream or search for a radio station.")
+async def play_command(
+    ctx: tanjun.abc.Context,
+    query: str,
+    ongaku_client: ongaku.Client = tanjun.inject()
+):
+    """Play music from a web stream. (Only Webradio Links for now)"""
+    if not ctx.member or not ctx.member.voice_state or not ctx.member.voice_state.channel_id:
+        await ctx.respond("You must be in a voice channel to use this command.")
+        return
 
+    voice_state = ctx.member.voice_state
 
-sources_on_guild: Dict[int, AudioStream] = {}
-
-
-async def play_from_url(interaction: discord.Interaction, source_url: str):
-    """
-        Function that plays music inside a channel..
-    """
-    await interaction.response.defer()
-    voice_channel = interaction.user.voice.channel
-
-    old_audio_stream = sources_on_guild.get(interaction.guild_id)
-
-    if old_audio_stream:
-        voice_client = old_audio_stream.vc
-        voice_client.stop()
-    else:
-        # grab the voice client that is available.
-        try:
-            voice_client = await voice_channel.connect(self_deaf=True)
-        except (discord.GatewayNotFound, discord.ConnectionClosed):
-            print(f"Failed to create or find voice_client in guild with id {interaction.guild_id}")
-            interaction.followup.send("Failed to create audio stream.")
-
-    # creates an audio source object
-    audio_source = discord.FFmpegPCMAudio(
-        source_url,
-        before_options='-reconnect 1 -reconnect_streamed 1 ' +
-        '-reconnect_delay_max 5',
-        options='-vn')
-
-    # creates a volume transformer object
-    audio_transform = discord.PCMVolumeTransformer(audio_source)
-
-    # saves all objects for later use.
-    sources_on_guild[interaction.guild_id] = AudioStream(
-        url=source_url,
-        source=audio_source,
-        transform=audio_transform,
-        vc=voice_client)
-
-    # play audio from the audio_transform allowing for volume changes on the fly.
-    voice_client.play(audio_transform,
-                      after=lambda e: sources_on_guild.pop(voice_channel.id))
-
-    await interaction.followup.send(f"Playing music from {source_url}")
-
-
-class Music(commands.Cog):
-    """
-        Commands that interact with music.
-    """
-    def __init__(self, bot: commands.Bot) -> None:
-        super().__init__()
-        self.bot = bot
-
-    class StationSelect(ui.Select):
-        """
-            Selection of radio station
-        """
-        def __init__(self,
-                     *,
-                     placeholder: str,
-                     max_values: int = 1,
-                     options: List[discord.SelectOption]) -> None:
-            super().__init__(placeholder=placeholder,
-                             max_values=max_values,
-                             options=options)
-
-        async def callback(self, interaction: discord.Interaction) -> None:
-            await play_from_url(interaction, self.values[0])
-
-    @app_commands.command()
-    @app_commands.guild_only()
-    @commands.bot_has_permissions(speak=True, connect=True)
-    async def play(self, interaction: discord.Interaction, src: str):
-        """
-            Play music from a web stream. (Only Webradio Links for now)
-        """
-        source_url = src
-        if not textfilter.check_for_links(src):
-            await interaction.response.defer()
-            options: List[discord.SelectOption] = []
-            stations = radio_browser.search_radio(src)
-            for station in stations:
-                options.append(
-                    discord.SelectOption(label=station.name,
-                                         value=station.url))
-
-            if len(options) == 0:
-                await interaction.followup.send("""
-                Couldn't find any station matching your search term.
-                Remember that this bot, does not have youtube support for now.
-                """)
-
-            class RadioView(ui.View):
-                """
-                    View for selecting radio stations.
-                """
-                @discord.ui.select(placeholder="Select radio",
-                                   min_values=1,
-                                   max_values=1,
-                                   options=options)
-                async def select_callback(self,
-                                          interaction: discord.Interaction,
-                                          select: ui.Select):
-                    """
-                        callback for the selection within the view.
-                    """
-                    self.stop()
-                    await play_from_url(interaction, select.values[0])
-
-            view = RadioView()
-            await interaction.followup.send("Select a station:", view=view)
-            return
-
-        await play_from_url(interaction, source_url)
-
-    @app_commands.command()
-    @app_commands.guild_only()
-    async def disconnect(self, interaction: discord.Interaction):
-        """
-        Disconnect bot from channel.
-        """
-        try:
-            audio_stream = sources_on_guild.get(interaction.guild_id)
-            await audio_stream.vc.disconnect()
-
-            await interaction.response.send_message("Disconnected from channel"
-                                                    )
-        except discord.errors.ClientException as err:
-            print(f"Error disconnecting from voice channel: {err}")
-            await interaction.response.send_message(
-                "Error disconnecting from channel")
-
-    @app_commands.command()
-    @app_commands.guild_only()
-    async def volume(self, interaction: discord.Interaction, percentage: int):
-        """
-            Changes the Volume of the Audio for the current stream.
-        """
-        # grab the current audio stream.
-        audio_stream = sources_on_guild.get(interaction.guild_id)
-
-        # send message if not exists
-        if not audio_stream:
-
-            await interaction.response.send_message(
-                "There is no audio stream in this guild.")
-            return
-
-        # set the volume
-        audio_stream.transform.volume = percentage * 0.01
-
-        await interaction.response.send_message(
-            f"Set stream volume to {percentage}%")
-
-
-async def setup(bot: commands.Bot):
-    """
-        Setup function for music module
-    """
     try:
-        opus.load_opus('libopus.so')
-        if opus.is_loaded():
-            await bot.add_cog(Music(bot))
-        else:
-            print("Opus isn't loaded, not integrating music module.")
-    except (opus.OpusError, opus.OpusNotLoaded) as err:
-        print(f"Somethig wen't wrong loading the while loading the music module: {err}")
+        player = await ongaku_client.create_player(ctx.guild_id)
+        if not player.is_connected:
+            await player.connect(voice_state.channel_id)
+
+    except (ongaku.PlayerCreateException, ongaku.PlayerConnectException) as e:
+        await ctx.respond(f"Failed to connect to voice channel: {e}")
+        return
+
+    if textfilter.check_for_links(query):
+        result = await ongaku_client.rest.load_track(query)
+        if not result:
+            await ctx.respond("Could not load track from the provided URL.")
+            return
+
+        try:
+            await player.play(result.track)
+            await ctx.respond(f"Now playing: {result.track.info.title}")
+        except ongaku.PlayerException as e:
+            await ctx.respond(f"Failed to play track: {e}")
+        return
+
+    # Radio station search logic
+    await ctx.defer()
+    stations = radio_browser.search_radio(query, limit=25)
+    if not stations:
+        await ctx.respond("Couldn't find any station matching your search term.")
+        return
+
+    options = [
+        hikari.SelectMenuOption(label=station.name[:100], value=station.url, description=(station.tags or "No tags")[:100])
+        for station in stations
+    ]
+
+    select_menu = ctx.rest.build_action_row().add_select_menu("radio_station_select")
+    for option in options:
+        select_menu.add_option(option)
+
+    await ctx.create_followup(
+        "Select a station:",
+        component=select_menu.parent
+    )
+
+    try:
+        event = await ctx.app.wait_for(
+            hikari.InteractionCreateEvent,
+            timeout=60,
+            predicate=lambda e: (
+                isinstance(e.interaction, hikari.ComponentInteraction)
+                and e.interaction.custom_id == "radio_station_select"
+                and e.interaction.user.id == ctx.author.id
+            ),
+        )
+        url = event.interaction.values[0]
+        result = await ongaku_client.rest.load_track(url)
+        if not result:
+            await ctx.edit_initial_response("Could not load track from the selected station.")
+            return
+
+        await player.play(result.track)
+        await ctx.edit_initial_response(f"Now playing: {result.track.info.title}", components=[])
+
+    except TimeoutError:
+        await ctx.edit_initial_response("Selection timed out.", components=[])
+
+@component.with_slash_command
+@tanjun.as_slash_command("disconnect", "Disconnect the bot from the voice channel.")
+async def disconnect_command(ctx: tanjun.abc.Context, ongaku_client: ongaku.Client = tanjun.inject()):
+    """Disconnect bot from channel."""
+    try:
+        await ongaku_client.disconnect(ctx.guild_id)
+        await ctx.respond("Disconnected from the channel.")
+    except ongaku.PlayerMissingException:
+        await ctx.respond("I am not connected to any voice channel in this server.")
+    except Exception as e:
+        await ctx.respond(f"An error occurred: {e}")
+
+@component.with_slash_command
+@tanjun.with_int_slash_option("percentage", "The volume percentage (0-100).", min_value=0, max_value=100)
+@tanjun.as_slash_command("volume", "Changes the volume of the audio stream.")
+async def volume_command(ctx: tanjun.abc.Context, percentage: int, ongaku_client: ongaku.Client = tanjun.inject()):
+    """Changes the Volume of the Audio for the current stream."""
+    try:
+        player = ongaku_client.fetch_player(ctx.guild_id)
+        await player.set_volume(percentage)
+        await ctx.respond(f"Set stream volume to {percentage}%")
+    except ongaku.PlayerMissingException:
+        await ctx.respond("There is no audio stream in this guild.")
+    except Exception as e:
+        await ctx.respond(f"An error occurred: {e}")
+
+@tanjun.as_loader
+def load_component(client: tanjun.Client):
+    "Loads the music component."
+    client.add_component(component.copy())

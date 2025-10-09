@@ -1,147 +1,103 @@
 "Core command group (commands ex. info, help)"
-import discord
-from discord import app_commands
-from discord.ext import commands, tasks
+import hikari
+import tanjun
 from api import bots_gg
-from bot import AesesBot
+from tanjun.schedules import every
 
 TIMEFORMAT = "%m/%d/%Y, %H:%M:%S"
 
+component = tanjun.Component()
 
-async def generate_whois_embed(member: discord.Member):
+async def generate_whois_embed(member: hikari.Member) -> hikari.Embed:
     "Generate a full whois embed for the given member"
+    embed = hikari.Embed(title=f"Whois of {member.display_name}", color=member.accent_color)
+    embed.set_thumbnail(member.display_avatar_url)
 
-    embed = discord.Embed(title=f"Whois of {member.display_name}")
-    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.add_field(name="Username", value=str(member))
 
-    embed.add_field(name="Username", value=member.name)
-    embed.add_field(name="Roles",
-                    value=", ".join([r.mention for r in member.roles]))
+    roles = ", ".join(r.mention for r in member.get_roles())
+    if roles:
+        embed.add_field(name="Roles", value=roles)
 
-    embed.add_field(name="Creation",
-                    value=member.created_at.strftime(TIMEFORMAT),
-                    inline=False)
-    embed.add_field(name="Joined",
-                    value=member.joined_at.strftime(TIMEFORMAT),
-                    inline=False)
+    embed.add_field(name="Creation", value=member.created_at.strftime(TIMEFORMAT), inline=False)
+    if member.joined_at:
+        embed.add_field(name="Joined", value=member.joined_at.strftime(TIMEFORMAT), inline=False)
 
     return embed
 
-
-async def generate_avatar_embed(user: discord.User):
+async def generate_avatar_embed(user: hikari.User) -> hikari.Embed:
     "Generate an embed containing the avatar of the user"
-
-    embed = discord.Embed(title=user.name)
-    embed.set_image(url=user.avatar.url)
-
+    embed = hikari.Embed(title=user.username, color=user.accent_color)
+    embed.set_image(user.avatar_url)
     return embed
 
+@component.with_slash_command
+@tanjun.as_slash_command("info", "This command shows information about the bot.")
+async def info_command(ctx: tanjun.abc.Context, bot: hikari.GatewayBot = tanjun.inject()):
+    "This command shows information about the bot."
+    me = bot.get_me()
+    embed = hikari.Embed(title=me.username)
+    embed.add_field(name="Github Repo", value="https://github.com/ChinoCodeDemon/Aeses")
+    embed.add_field(name="Support Server", value="https://discord.gg/StgE5Z4bFB")
+    embed.add_field(name="Framework", value="Hikari + Tanjun")
+    embed.set_image(me.avatar_url)
+    await ctx.respond(embed=embed)
 
-@app_commands.context_menu(name="Whois")
-async def menu_whois(interaction: discord.Interaction, member: discord.Member):
+@component.with_slash_command
+@tanjun.as_slash_command("invite", "Sends back an invite link for the bot.")
+async def invite_command(ctx: tanjun.abc.Context, bot: hikari.GatewayBot = tanjun.inject()):
+    "Sends back an invite link for the bot."
+    app = bot.application
+    link = f"https://discord.com/api/oauth2/authorize?client_id={app.id}&permissions=2281712656&scope=bot%20applications.commands"
+    embed = hikari.Embed(
+        title="Invite",
+        description=f"You can use this link to invite the bot into your server:\n{link}"
+    )
+    await ctx.respond(embed=embed)
+
+@component.with_slash_command
+@tanjun.with_user_slash_option("user", "The user to get the avatar of.", default=None)
+@tanjun.as_slash_command("avatar", "Give a better view on avatars")
+async def avatar_command(ctx: tanjun.abc.Context, user: hikari.User | None):
+    "Give a better view on avatars"
+    target_user = user or ctx.author
+    embed = await generate_avatar_embed(target_user)
+    await ctx.respond(embed=embed)
+
+@component.with_slash_command
+@tanjun.with_member_slash_option("member", "The member to get info about.", default=None)
+@tanjun.as_slash_command("whois", "Gives you quick info about a member or yourself.")
+async def whois_command(ctx: tanjun.abc.Context, member: hikari.Member | None):
+    "Gives you quick info about a member or yourself."
+    target_member = member or ctx.member
+    if not target_member:
+        await ctx.respond("Could not find member.")
+        return
+
+    embed = await generate_whois_embed(target_member)
+    await ctx.respond(embed=embed)
+
+@component.with_user_menu
+@tanjun.as_user_menu("Whois", dm_enabled=False)
+async def whois_menu(ctx: tanjun.abc.MenuContext, member: hikari.Member):
     "Get a whois over contex menu"
-
     embed = await generate_whois_embed(member)
-    interaction.response.send_message(embed=embed)
+    await ctx.respond(embed=embed)
 
+@component.with_user_menu
+@tanjun.as_user_menu("Avatar")
+async def avatar_menu(ctx: tanjun.abc.MenuContext, user: hikari.User):
+    "Get an avatar over contex menu"
+    embed = await generate_avatar_embed(user)
+    await ctx.respond(embed=embed)
 
-@app_commands.context_menu(name="Avatar")
-async def menu_avatar(interaction: discord.Interaction,
-                      member: discord.Member):
-    "Get a whois over contex menu"
+@component.with_schedule(every(minutes=30))
+async def update_bot_statistics(bot: hikari.GatewayBot = tanjun.inject()):
+    "Updates statistics about the bot."
+    if bot.application:
+        bots_gg.update_statistics(bot.application.id, len(bot.cache.get_guilds_view()))
 
-    embed = await generate_whois_embed(member)
-    interaction.response.send_message(embed=embed)
-
-
-class Utility(commands.Cog):
-    "Basic functionalities of the bot, like information."
-
-    def __init__(self, client: AesesBot) -> None:
-        self.client = client
-        # client.help_command = HelpCommand()
-        # client.help_command.cog = self
-        client.add_context_menus([menu_whois, menu_avatar])
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        "Initialised tasks"
-        # pylint: disable=no-member
-        self.update_bot_statistics.start()
-
-    async def cog_unload(self) -> None:
-        "Cancels tasks"
-        # pylint: disable=no-member
-        self.update_bot_statistics.cancel()
-
-    @app_commands.command()
-    async def info(self, inter: discord.Interaction):
-        "This command shows information about the bot."
-        embed_message = discord.Embed()
-
-        embed_message.title = self.client.user.name
-
-        embed_message.add_field(
-            name="Github Repo",
-            value="https://github.com/ChinoCodeDemon/Aeses")
-        embed_message.add_field(name="Support Server",
-                                value="https://discord.gg/StgE5Z4bFB")
-
-        embed_message.add_field(name="Framework", value="discord.py")
-
-        embed_message.set_image(url=self.client.user.avatar.url)
-
-        await inter.response.send_message(embed=embed_message)
-
-    @app_commands.command()
-    async def invite(self, inter: discord.Interaction):
-        "Sends back an invite link for the bot."
-        # This line is long because of the url that only gets used at that spot.
-        # pylint: disable=line-too-long
-        link = f"https://discord.com/api/oauth2/authorize?client_id={self.client.application_id}&permissions=2281712656&scope=bot"
-
-        embed = discord.Embed(
-            title="Invite",
-            # pylint: disable=line-too-long
-            description=
-            f"You can use this link this link to invite the bot into your server:\n{link}"
-        )
-
-        await inter.response.send_message(embed=embed)
-
-    @app_commands.command()
-    async def avatar(self,
-                     inter: discord.Interaction,
-                     user: discord.User = None):
-        "Give a better view on avatars"
-        # assume the target to be the author if not given.
-        if not user:
-            user = inter.user
-
-        embed = await generate_avatar_embed(user)
-        await inter.response.send_message(embed=embed)
-
-    @app_commands.command()
-    @commands.guild_only()
-    async def whois(self,
-                    inter: discord.Interaction,
-                    member: discord.Member = None):
-        "Gives you quick info about a member or yourself, useful for moderation."
-        # assume the target to be the author if not given.
-        if not member:
-            member = inter.user
-
-        embed = await generate_whois_embed(member)
-        await inter.response.send_message(embed=embed)
-
-    @tasks.loop(seconds=5)
-    async def update_bot_statistics(self):
-        "Updates statistics about the bot."
-        if self.client.application_id:
-            bots_gg.update_statistics(self.client.application_id,
-                                      len(self.client.guilds))
-
-
-async def setup(client: commands.Bot):
-    "Setup function for 'info' cog"
-    await client.add_cog(Utility(client))
+@tanjun.as_loader
+def load_component(client: tanjun.Client):
+    "Loads the component"
+    client.add_component(component.copy())
