@@ -1,6 +1,5 @@
-"""
-This Module adds commands that allow listening to radio and music in guild channels.
-"""
+"""This Module adds commands that allow listening to radio and music in guild channels."""
+import asyncio
 import hikari
 import tanjun
 import ongaku
@@ -15,7 +14,8 @@ component = tanjun.Component(name="music")
 async def play_command(
     ctx: tanjun.abc.Context,
     query: str,
-    ongaku_client: ongaku.Client = tanjun.inject()
+    bot: hikari.GatewayBot = tanjun.inject(),
+    ongaku_client: ongaku.Client = tanjun.inject(),
 ):
     """Play music from a web stream. (Only Webradio Links for now)"""
     if not ctx.member or not ctx.member.voice_state or not ctx.member.voice_state.channel_id:
@@ -42,19 +42,23 @@ async def play_command(
         try:
             await player.play(result.track)
             await ctx.respond(f"Now playing: {result.track.info.title}")
-        except ongaku.PlayerException as e:
+        except ongaku.PlayerError as e:
             await ctx.respond(f"Failed to play track: {e}")
         return
 
     # Radio station search logic
     await ctx.defer()
-    stations = radio_browser.search_radio(query, limit=25)
+    stations = radio_browser.search_radio(query)
     if not stations:
         await ctx.respond("Couldn't find any station matching your search term.")
         return
 
     options = [
-        hikari.SelectMenuOption(label=station.name[:100], value=station.url, description=(station.tags or "No tags")[:100])
+        hikari.SelectMenuOption(
+            label=station.name[:100],
+            value=station.url,
+            description=(station.tags or "No tags")[:100],
+        )
         for station in stations
     ]
 
@@ -62,13 +66,10 @@ async def play_command(
     for option in options:
         select_menu.add_option(option)
 
-    await ctx.create_followup(
-        "Select a station:",
-        component=select_menu.parent
-    )
+    await ctx.create_followup("Select a station:", component=select_menu.parent)
 
     try:
-        event = await ctx.app.wait_for(
+        event = await bot.wait_for(
             hikari.InteractionCreateEvent,
             timeout=60,
             predicate=lambda e: (
@@ -86,12 +87,14 @@ async def play_command(
         await player.play(result.track)
         await ctx.edit_initial_response(f"Now playing: {result.track.info.title}", components=[])
 
-    except TimeoutError:
+    except asyncio.TimeoutError:
         await ctx.edit_initial_response("Selection timed out.", components=[])
 
 @component.with_slash_command
 @tanjun.as_slash_command("disconnect", "Disconnect the bot from the voice channel.")
-async def disconnect_command(ctx: tanjun.abc.Context, ongaku_client: ongaku.Client = tanjun.inject()):
+async def disconnect_command(
+    ctx: tanjun.abc.Context, ongaku_client: ongaku.Client = tanjun.inject()
+):
     """Disconnect bot from channel."""
     try:
         await ongaku_client.disconnect(ctx.guild_id)
@@ -102,20 +105,24 @@ async def disconnect_command(ctx: tanjun.abc.Context, ongaku_client: ongaku.Clie
         await ctx.respond(f"An error occurred: {e}")
 
 @component.with_slash_command
-@tanjun.with_int_slash_option("percentage", "The volume percentage (0-100).", min_value=0, max_value=100)
+@tanjun.with_int_slash_option(
+    "percentage", "The volume percentage (0-100).", min_value=0, max_value=100
+)
 @tanjun.as_slash_command("volume", "Changes the volume of the audio stream.")
-async def volume_command(ctx: tanjun.abc.Context, percentage: int, ongaku_client: ongaku.Client = tanjun.inject()):
+async def volume_command(
+    ctx: tanjun.abc.Context, percentage: int, ongaku_client: ongaku.Client = tanjun.inject()
+):
     """Changes the Volume of the Audio for the current stream."""
     try:
         player = ongaku_client.fetch_player(ctx.guild_id)
         await player.set_volume(percentage)
         await ctx.respond(f"Set stream volume to {percentage}%")
-    except ongaku.PlayerMissingException:
+    except ongaku.PlayerMissingError:
         await ctx.respond("There is no audio stream in this guild.")
     except Exception as e:
         await ctx.respond(f"An error occurred: {e}")
 
 @tanjun.as_loader
-def load_component(client: tanjun.Client):
-    "Loads the music component."
+def load_component(client: tanjun.Client) -> None:
+    """Loads the music component."""
     client.add_component(component.copy())

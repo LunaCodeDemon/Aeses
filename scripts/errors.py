@@ -1,66 +1,31 @@
-"A collections of functions that reply to errors."
+"""A collections of functions that reply to errors."""
 import logging
-from typing import Union
 import httpx
-from discord.ext import commands
+import tanjun
 from api import safebooru
 from configloader import config
 
-
-def read_timeout(_: commands.Context, error: httpx.ReadTimeout):
-    "This gets triggered if the bot gets a read timout."
+def read_timeout(_: tanjun.abc.Context, error: httpx.ReadTimeout):
+    """This gets triggered if the bot gets a read timeout."""
     logging.warning("Bot got a timeout from %s", error.request.url)
 
+def safebooru_connection_error(ctx: tanjun.abc.Context, _: safebooru.SafebooruConnectionError):
+    """This is triggered when the connection to safebooru fails."""
+    message = config['exceptions']['safebooru_connection_error']
+    if ctx.has_responded:
+        return ctx.edit_initial_response(message)
+    return ctx.respond(message)
 
-def missing_permissions(is_bot: bool):
-    "This gets triggered when bot or client doesn't have correct permissions."
+def safebooru_nothing_found(ctx: tanjun.abc.Context, error: safebooru.SafebooruNothingFound):
+    """This is triggerd if nothing is found on safebooru query."""
+    tags_str = ', '.join(list(error.tags))
+    message = config['exceptions']['safebooru_nothing_found'].format(tags=tags_str)
+    if ctx.has_responded:
+        return ctx.edit_initial_response(message)
+    return ctx.respond(message)
 
-    def inner(ctx: commands.Context,
-              error: Union[commands.BotMissingPermissions,
-                           commands.MissingPermissions]):
-        if not ctx.guild:
-            ctx.send(config['exceptions']['outside_of_guild'])
-            return
-
-        # send different messages depending on the causing user..
-        if is_bot:
-            ctx.send(config['exceptions']['bot_missing_permissions'].format(
-                permissions=', '.join(error.missing_perms)))
-        else:
-            ctx.send(config['exceptions']['missing_permissions'].format(
-                permissions=', '.join(error.missing_perms)))
-
-    return inner
-
-
-def safebooru_connection_error(ctx: commands.Context,
-                               _: safebooru.SafebooruConnectionError):
-    "This is triggered when the connection to safebooru fails."
-    ctx.send(config['exceptions']['safebooru_connection_error'])
-
-
-def safebooru_nothing_found(ctx: commands.Context,
-                            error: safebooru.SafebooruNothingFound):
-    "This is triggerd if nothing is found on safebooru query."
-    ctx.send(config['exceptions']['safebooru_nothing_found'].format(
-        tags=', '.join(list(error.tags))))
-
-
-def missing_required_argument(ctx: commands.Context,
-                              _: commands.MissingRequiredArgument):
-    "This is triggerd if the invoker didn't give all the necessary arguments."
-    ctx.send_help(ctx.command)
-
-
-def command_not_found(_: commands.Context, __: commands.CommandNotFound):
-    "Command wasn't found"
-
-
+# This dictionary is now much smaller as most errors are handled by Tanjun's built-in hooks and checks.
 error_dictionary = {
-    commands.MissingPermissions: missing_permissions(False),
-    commands.BotMissingPermissions: missing_permissions(True),
     safebooru.SafebooruConnectionError: safebooru_connection_error,
     safebooru.SafebooruNothingFound: safebooru_nothing_found,
-    commands.MissingRequiredArgument: missing_required_argument,
-    commands.CommandNotFound: command_not_found
 }
