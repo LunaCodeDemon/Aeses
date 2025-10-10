@@ -102,8 +102,8 @@ async def reminder_update(bot: hikari.GatewayBot = tanjun.inject()):
 
     sqldata.cleanup_reminders(timestamp)
 
-@component.with_listener(hikari.MemberJoinEvent)
-async def on_member_join(event: hikari.MemberJoinEvent, bot: hikari.GatewayBot = tanjun.inject()):
+@component.with_listener(hikari.MemberCreateEvent)
+async def on_member_join(event: hikari.MemberCreateEvent, bot: hikari.GatewayBot = tanjun.inject()):
     """Handles member joins."""
     log_channel_data = sqldata.get_logchannel(event.guild_id, sqldata.LogType.WELCOME)
     if not log_channel_data:
@@ -114,8 +114,8 @@ async def on_member_join(event: hikari.MemberJoinEvent, bot: hikari.GatewayBot =
     embed = await create_welcome_embed(event.member, text)
     await channel.send(embed=embed)
 
-@component.with_listener(hikari.MemberLeaveEvent)
-async def on_member_leave(event: hikari.MemberLeaveEvent, bot: hikari.GatewayBot = tanjun.inject()):
+@component.with_listener(hikari.MemberDeleteEvent)
+async def on_member_leave(event: hikari.MemberDeleteEvent, bot: hikari.GatewayBot = tanjun.inject()):
     """React when a member leaves or gets kicked"""
     try:
         async for entry in bot.rest.fetch_audit_log(

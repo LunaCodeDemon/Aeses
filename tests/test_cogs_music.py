@@ -18,6 +18,7 @@ async def test_play_command_no_voice_state(mock_ctx):
 async def test_disconnect_command(mock_ctx):
     """Test the disconnect command."""
     mock_ongaku = mock.AsyncMock(spec=ongaku.Client)
+    mock_ongaku.disconnect = mock.AsyncMock()
 
     await music_cog.disconnect_command(mock_ctx, ongaku_client=mock_ongaku)
 
@@ -43,7 +44,8 @@ async def test_play_command_radio_search_no_results(mock_search, mock_ctx):
     """Test the play command with a radio search that returns no results."""
     mock_ongaku = mock.AsyncMock(spec=ongaku.Client)
     mock_player = mock.AsyncMock(spec=ongaku.Player)
-    mock_ongaku.create_player.return_value = mock_player
+    mock_player.is_connected = False
+    mock_ongaku.create_player = mock.AsyncMock(return_value=mock_player)
 
     await music_cog.play_command(mock_ctx, "nonexistent radio", ongaku_client=mock_ongaku)
 

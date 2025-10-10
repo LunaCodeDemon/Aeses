@@ -29,7 +29,7 @@ async def play_command(
         if not player.is_connected:
             await player.connect(voice_state.channel_id)
 
-    except (ongaku.PlayerCreateException, ongaku.PlayerConnectException) as e:
+    except ongaku.PlayerError as e:
         await ctx.respond(f"Failed to connect to voice channel: {e}")
         return
 
@@ -96,7 +96,7 @@ async def disconnect_command(ctx: tanjun.abc.Context, ongaku_client: ongaku.Clie
     try:
         await ongaku_client.disconnect(ctx.guild_id)
         await ctx.respond("Disconnected from the channel.")
-    except ongaku.PlayerMissingException:
+    except ongaku.PlayerMissingError:
         await ctx.respond("I am not connected to any voice channel in this server.")
     except Exception as e:
         await ctx.respond(f"An error occurred: {e}")

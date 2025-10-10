@@ -20,6 +20,10 @@ def mock_ctx():
             self.author.accent_color = 0x00ffff
             self.author.avatar_url = "http://example.com/author_avatar.png"
 
+            # Add voice_state to the member mock
+            self.member.voice_state = mock.Mock(spec=hikari.VoiceState)
+            self.member.voice_state.channel_id = 987654321
+
             # Make the mock awaitable
             self.__await__ = lambda: self.__async_return_value__.__await__()
 
