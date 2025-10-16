@@ -6,31 +6,41 @@ from configloader import config, emote_links
 
 component = tanjun.Component(name="emotes")
 
-def generate_emoji_embed(action: str, myself: hikari.User, target: hikari.User = None) -> hikari.Embed:
+
+def generate_emoji_embed(
+    action: str, myself: hikari.User, target: hikari.User = None
+) -> hikari.Embed:
     "Generates an emoji embed for an emote action."
-    embed = hikari.Embed(color=0xff3300)
+    embed = hikari.Embed(color=0xFF3300)
 
     if target:
-        embed.description = config['emotes'][action]['with_target'].format(
+        embed.description = config["emotes"][action]["with_target"].format(
             myself=myself.mention, target=target.mention
         )
     else:
-        embed.description = config['emotes'][action]['alone'].format(
+        embed.description = config["emotes"][action]["alone"].format(
             myself=myself.mention
         )
 
     embed.set_image(choice(emote_links[action]))
     return embed
 
-def create_emote_command(name: str, description: str) -> tanjun.SlashCommand:
+
+def create_emote_command(
+    emote_name: str, emote_description: str
+) -> tanjun.SlashCommand:
     """A factory to create emote slash commands."""
-    @tanjun.with_user_slash_option("target", "The user to direct the emote at.", default=None)
-    @tanjun.as_slash_command(name, description)
+
+    @tanjun.with_user_slash_option(
+        "target", "The user to direct the emote at.", default=None
+    )
+    @tanjun.as_slash_command(emote_name, emote_description)
     async def emote_command(ctx: tanjun.abc.Context, target: hikari.User | None):
-        embed = generate_emoji_embed(name, ctx.author, target)
+        embed = generate_emoji_embed(emote_name, ctx.author, target)
         await ctx.respond(embed=embed)
 
     return emote_command
+
 
 # List of emotes to be generated
 emote_list = {
@@ -52,6 +62,7 @@ emote_list = {
 # Generate and add each emote command to the component
 for name, description in emote_list.items():
     component.add_slash_command(create_emote_command(name, description))
+
 
 @tanjun.as_loader
 def load_component(client: tanjun.Client):

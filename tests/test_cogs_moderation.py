@@ -1,8 +1,11 @@
+"""Tests for the moderation cog."""
+from unittest import mock
+
 import pytest
-import unittest.mock as mock
 import hikari
-import tanjun
+
 from cogs import moderation as moderation_cog
+
 
 @pytest.mark.anyio
 async def test_nsfw_command(mock_ctx):
@@ -12,24 +15,41 @@ async def test_nsfw_command(mock_ctx):
 
     # Test toggling NSFW from False to True
     mock_channel.is_nsfw = False
-    await moderation_cog.nsfw_command(mock_ctx, static_value=None)
-    mock_channel.edit.assert_called_once_with(nsfw=True)
+    with mock.patch.dict(
+        moderation_cog.config,
+        {"dialogs": {"nsfw": {"response": "Channel {channel} is now {status}"}}},
+    ):
+        await moderation_cog.nsfw_command(mock_ctx, static_value=None)
+        mock_channel.edit.assert_called_once_with(nsfw=True)
 
     # Test toggling NSFW from True to False
     mock_channel.reset_mock()
     mock_channel.is_nsfw = True
-    await moderation_cog.nsfw_command(mock_ctx, static_value=None)
-    mock_channel.edit.assert_called_once_with(nsfw=False)
+    with mock.patch.dict(
+        moderation_cog.config,
+        {"dialogs": {"nsfw": {"response": "Channel {channel} is now {status}"}}},
+    ):
+        await moderation_cog.nsfw_command(mock_ctx, static_value=None)
+        mock_channel.edit.assert_called_once_with(nsfw=False)
 
     # Test setting NSFW to a static value (True)
     mock_channel.reset_mock()
-    await moderation_cog.nsfw_command(mock_ctx, static_value=True)
-    mock_channel.edit.assert_called_once_with(nsfw=True)
+    with mock.patch.dict(
+        moderation_cog.config,
+        {"dialogs": {"nsfw": {"response": "Channel {channel} is now {status}"}}},
+    ):
+        await moderation_cog.nsfw_command(mock_ctx, static_value=True)
+        mock_channel.edit.assert_called_once_with(nsfw=True)
 
     # Test setting NSFW to a static value (False)
     mock_channel.reset_mock()
-    await moderation_cog.nsfw_command(mock_ctx, static_value=False)
-    mock_channel.edit.assert_called_once_with(nsfw=False)
+    with mock.patch.dict(
+        moderation_cog.config,
+        {"dialogs": {"nsfw": {"response": "Channel {channel} is now {status}"}}},
+    ):
+        await moderation_cog.nsfw_command(mock_ctx, static_value=False)
+        mock_channel.edit.assert_called_once_with(nsfw=False)
+
 
 @pytest.mark.anyio
 async def test_slowdown_command(mock_ctx):
@@ -44,5 +64,6 @@ async def test_slowdown_command(mock_ctx):
 
     # Test disabling the slowdown
     mock_channel.reset_mock()
+    mock_ctx.respond.reset_mock()
     await moderation_cog.slowdown_command(mock_ctx, seconds=0)
     mock_channel.edit.assert_called_once_with(slow_mode_cooldown=0)

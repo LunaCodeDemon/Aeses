@@ -8,45 +8,34 @@ from scripts import textfilter
 
 component = tanjun.Component(name="music")
 
-@component.with_slash_command
-@tanjun.with_str_slash_option("query", "A search query or a direct URL.")
-@tanjun.as_slash_command("play", "Play music from a web stream or search for a radio station.")
-async def play_command(
-    ctx: tanjun.abc.Context,
-    query: str,
-    bot: hikari.GatewayBot = tanjun.inject(),
-    ongaku_client: ongaku.Client = tanjun.inject(),
-):
-    """Play music from a web stream. (Only Webradio Links for now)"""
-    if not ctx.member or not ctx.member.voice_state or not ctx.member.voice_state.channel_id:
-        await ctx.respond("You must be in a voice channel to use this command.")
-        return
 
-    voice_state = ctx.member.voice_state
+async def _handle_direct_play(
+    ctx: tanjun.abc.Context,
+    player: ongaku.Player,
+    ongaku_client: ongaku.Client,
+    query: str,
+):
+    """Handles playing a track from a direct URL."""
+    result = await ongaku_client.rest.load_track(query)
+    if not result:
+        await ctx.respond("Could not load track from the provided URL.")
+        return
 
     try:
-        player = await ongaku_client.create_player(ctx.guild_id)
-        if not player.is_connected:
-            await player.connect(voice_state.channel_id)
-
+        await player.play(result.track)
+        await ctx.respond(f"Now playing: {result.track.info.title}")
     except ongaku.PlayerError as e:
-        await ctx.respond(f"Failed to connect to voice channel: {e}")
-        return
+        await ctx.respond(f"Failed to play track: {e}")
 
-    if textfilter.check_for_links(query):
-        result = await ongaku_client.rest.load_track(query)
-        if not result:
-            await ctx.respond("Could not load track from the provided URL.")
-            return
 
-        try:
-            await player.play(result.track)
-            await ctx.respond(f"Now playing: {result.track.info.title}")
-        except ongaku.PlayerError as e:
-            await ctx.respond(f"Failed to play track: {e}")
-        return
-
-    # Radio station search logic
+async def _handle_radio_search(
+    ctx: tanjun.abc.Context,
+    bot: hikari.GatewayBot,
+    player: ongaku.Player,
+    ongaku_client: ongaku.Client,
+    query: str,
+):
+    """Handles searching for and playing a radio station."""
     await ctx.defer()
     stations = radio_browser.search_radio(query)
     if not stations:
@@ -78,17 +67,62 @@ async def play_command(
                 and e.interaction.user.id == ctx.author.id
             ),
         )
+        if not isinstance(event.interaction, hikari.ComponentInteraction):
+            return
+
         url = event.interaction.values[0]
         result = await ongaku_client.rest.load_track(url)
         if not result:
-            await ctx.edit_initial_response("Could not load track from the selected station.")
+            await ctx.edit_initial_response(
+                "Could not load track from the selected station."
+            )
             return
 
         await player.play(result.track)
-        await ctx.edit_initial_response(f"Now playing: {result.track.info.title}", components=[])
+        await ctx.edit_initial_response(
+            f"Now playing: {result.track.info.title}", components=[]
+        )
 
     except asyncio.TimeoutError:
         await ctx.edit_initial_response("Selection timed out.", components=[])
+
+
+@component.with_slash_command
+@tanjun.with_str_slash_option("query", "A search query or a direct URL.")
+@tanjun.as_slash_command(
+    "play", "Play music from a web stream or search for a radio station."
+)
+async def play_command(
+    ctx: tanjun.abc.Context,
+    query: str,
+    bot: hikari.GatewayBot = tanjun.inject(),
+    ongaku_client: ongaku.Client = tanjun.inject(),
+):
+    """Play music from a web stream. (Only Webradio Links for now)"""
+    if (
+        not ctx.member
+        or not ctx.member.voice_state
+        or not ctx.member.voice_state.channel_id
+    ):
+        await ctx.respond("You must be in a voice channel to use this command.")
+        return
+
+    voice_state = ctx.member.voice_state
+
+    try:
+        player = await ongaku_client.create_player(ctx.guild_id)
+        if not player.is_connected:
+            await player.connect(voice_state.channel_id)
+
+    except ongaku.PlayerError as e:
+        await ctx.respond(f"Failed to connect to voice channel: {e}")
+        return
+
+    if textfilter.check_for_links(query):
+        await _handle_direct_play(ctx, player, ongaku_client, query)
+    else:
+        await _handle_radio_search(ctx, bot, player, ongaku_client, query)
+
 
 @component.with_slash_command
 @tanjun.as_slash_command("disconnect", "Disconnect the bot from the voice channel.")
@@ -101,8 +135,9 @@ async def disconnect_command(
         await ctx.respond("Disconnected from the channel.")
     except ongaku.PlayerMissingError:
         await ctx.respond("I am not connected to any voice channel in this server.")
-    except Exception as e:
+    except ongaku.OngakuError as e:
         await ctx.respond(f"An error occurred: {e}")
+
 
 @component.with_slash_command
 @tanjun.with_int_slash_option(
@@ -110,7 +145,9 @@ async def disconnect_command(
 )
 @tanjun.as_slash_command("volume", "Changes the volume of the audio stream.")
 async def volume_command(
-    ctx: tanjun.abc.Context, percentage: int, ongaku_client: ongaku.Client = tanjun.inject()
+    ctx: tanjun.abc.Context,
+    percentage: int,
+    ongaku_client: ongaku.Client = tanjun.inject(),
 ):
     """Changes the Volume of the Audio for the current stream."""
     try:
@@ -119,8 +156,9 @@ async def volume_command(
         await ctx.respond(f"Set stream volume to {percentage}%")
     except ongaku.PlayerMissingError:
         await ctx.respond("There is no audio stream in this guild.")
-    except Exception as e:
+    except ongaku.OngakuError as e:
         await ctx.respond(f"An error occurred: {e}")
+
 
 @tanjun.as_loader
 def load_component(client: tanjun.Client) -> None:

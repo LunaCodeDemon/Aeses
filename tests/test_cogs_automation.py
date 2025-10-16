@@ -1,9 +1,12 @@
+"""Tests for the automation cog."""
+from unittest import mock
+
 import pytest
-import unittest.mock as mock
 import hikari
-import tanjun
+
 from cogs import automation as automation_cog
 from scripts import sqldata
+
 
 @pytest.mark.anyio
 @mock.patch("cogs.automation.sqldata.insert_reminder")
@@ -22,6 +25,7 @@ async def test_reminder_command(mock_insert_reminder, mock_ctx):
     call_args = mock_ctx.create_followup.call_args
     assert "Reminder scheduled for" in call_args.args[0]
 
+
 @pytest.mark.anyio
 @mock.patch("cogs.automation.sqldata.insert_logchannel")
 async def test_log_add_command(mock_insert_logchannel, mock_ctx):
@@ -30,21 +34,18 @@ async def test_log_add_command(mock_insert_logchannel, mock_ctx):
     mock_channel.id = 98765
 
     await automation_cog.log_add_command(
-        mock_ctx,
-        logtype=sqldata.LogType.WELCOME.value,
-        channel=mock_channel
+        mock_ctx, logtype=sqldata.LogType.WELCOME.value, channel=mock_channel
     )
 
     # Verify that the database function was called correctly
     mock_insert_logchannel.assert_called_once_with(
-        mock_ctx.guild_id,
-        mock_channel.id,
-        sqldata.LogType.WELCOME
+        mock_ctx.guild_id, mock_channel.id, sqldata.LogType.WELCOME
     )
 
     # Check that it responded to the user
     mock_ctx.respond.assert_called_once()
     assert "Activated" in mock_ctx.respond.call_args.args[0]
+
 
 @pytest.mark.anyio
 @mock.patch("cogs.automation.sqldata.get_logchannel")
@@ -53,7 +54,7 @@ async def test_log_list_command(mock_get_logchannel, mock_ctx):
     # Mock the database response
     mock_get_logchannel.return_value = [
         mock.Mock(logtype=sqldata.LogType.WELCOME, channel_id=111),
-        mock.Mock(logtype=sqldata.LogType.MODERATION, channel_id=222)
+        mock.Mock(logtype=sqldata.LogType.MODERATION, channel_id=222),
     ]
 
     await automation_cog.log_list_command(mock_ctx)
@@ -64,12 +65,13 @@ async def test_log_list_command(mock_get_logchannel, mock_ctx):
     # Check that an embed was sent
     mock_ctx.respond.assert_called_once()
     call_args = mock_ctx.respond.call_args
-    embed = call_args.kwargs['embed']
+    embed = call_args.kwargs["embed"]
 
     assert embed.title == "Active log channels."
     assert len(embed.fields) == 2
     assert embed.fields[0].name == "WELCOME"
     assert embed.fields[0].value == "<#111>"
+
 
 @pytest.mark.anyio
 @mock.patch("cogs.automation.sqldata.get_logchannel", return_value=[])

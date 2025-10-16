@@ -1,6 +1,8 @@
 "Tests for safebooru api functions."
+from unittest import mock
+
 import pytest
-import unittest.mock as mock
+
 from api import safebooru
 
 # Sample XML responses for mocking
@@ -33,6 +35,7 @@ MOCK_POST_XML = """
 </posts>
 """
 
+
 @pytest.mark.anyio
 @mock.patch("api.safebooru.httpx.get")
 async def test_random_post_mocked(mock_get):
@@ -41,7 +44,7 @@ async def test_random_post_mocked(mock_get):
     # The count call returns the count, the post call returns the post data
     mock_get.side_effect = [
         mock.Mock(status_code=200, text=MOCK_COUNT_XML),
-        mock.Mock(status_code=200, text=MOCK_POST_XML)
+        mock.Mock(status_code=200, text=MOCK_POST_XML),
     ]
 
     # Call the function
@@ -53,6 +56,7 @@ async def test_random_post_mocked(mock_get):
     assert post.file_url == "//g.safebooru.org/images/1/1a2b3c.jpg"
     assert post.has_comments is True
     assert "tag1" in post.tags
+
 
 @pytest.mark.anyio
 @mock.patch("api.safebooru.httpx.get")

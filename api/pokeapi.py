@@ -18,33 +18,31 @@ def get_pokemon(search_tag: str):
 
 def get_random_pokemon():
     "Get a random pokemon from pokeapi"
-    name = choice(get_full_pokemon_list()['results'])['name']
+    name = choice(get_full_pokemon_list()["results"])["name"]
     return get_pokemon(name)
+
 
 def create_pokemon_embed(pokemon_data: dict) -> hikari.Embed | None:
     """Generates an embed from Pokémon data."""
     if not pokemon_data or "name" not in pokemon_data:
         return None
 
-    name = pokemon_data.get('name', 'Unknown').capitalize()
-    poke_id = pokemon_data.get('id', 'N/A')
+    name = pokemon_data.get("name", "Unknown").capitalize()
+    poke_id = pokemon_data.get("id", "N/A")
 
-    embed = hikari.Embed(
-        title=name,
-        description=f"ID: {poke_id}"
-    )
+    embed = hikari.Embed(title=name, description=f"ID: {poke_id}")
 
-    if sprites := pokemon_data.get('sprites'):
-        if front_default := sprites.get('front_default'):
+    if sprites := pokemon_data.get("sprites"):
+        if front_default := sprites.get("front_default"):
             embed.set_thumbnail(front_default)
 
-    if types_data := pokemon_data.get('types'):
-        types = ", ".join([t['type']['name'] for t in types_data])
+    if types_data := pokemon_data.get("types"):
+        types = ", ".join([t["type"]["name"] for t in types_data])
         embed.add_field("Types", types, inline=True)
 
-    if stats_data := pokemon_data.get('stats'):
+    if stats_data := pokemon_data.get("stats"):
         for stat in stats_data:
-            stat_name = stat['stat']['name'].replace('-', ' ').capitalize()
-            embed.add_field(stat_name, str(stat['base_stat']), inline=True)
+            stat_name = stat["stat"]["name"].replace("-", " ").capitalize()
+            embed.add_field(stat_name, str(stat["base_stat"]), inline=True)
 
     return embed

@@ -14,28 +14,40 @@ from scripts.name_randomizer import pick_randomized_name
 
 ACTIVITY_OVERWRITE = os.environ.get("ACTIVITY_OVERWRITE")
 
+
+def get_random_user_name(gateway_bot: hikari.GatewayBot) -> str:
+    """Gets a random user name from the bot's cache."""
+    users = [user.username for user in gateway_bot.cache.get_users_view().values()]
+    return pick_randomized_name(users)
+
+
 activities: List[Callable[[hikari.GatewayBot], hikari.Activity]] = [
     lambda bot: hikari.Activity(
-        type=hikari.ActivityType.LISTENING, name=f"{len(bot.cache.get_users_view())} users"
+        type=hikari.ActivityType.LISTENING,
+        name=f"{len(bot.cache.get_users_view())} users",
     ),
     lambda bot: hikari.Activity(
-        type=hikari.ActivityType.LISTENING, name=f"{len(bot.cache.get_guilds_view())} guilds"
+        type=hikari.ActivityType.LISTENING,
+        name=f"{len(bot.cache.get_guilds_view())} guilds",
     ),
     lambda bot: hikari.Activity(
-        type=hikari.ActivityType.LISTENING, name=f"/whois {pick_randomized_name()}"
+        type=hikari.ActivityType.LISTENING, name=f"/whois {get_random_user_name(bot)}"
     ),
     lambda bot: hikari.Activity(
-        type=hikari.ActivityType.LISTENING, name=f"/avatar {pick_randomized_name()}"
+        type=hikari.ActivityType.LISTENING, name=f"/avatar {get_random_user_name(bot)}"
     ),
 ]
 
+
 def build_bot() -> hikari.GatewayBot:
     """Build the bot object."""
-    bot = hikari.GatewayBot(token=os.environ["DISCORD_TOKEN"], intents=hikari.Intents.ALL)
-    ongaku_client = ongaku.Client(bot)
+    new_bot = hikari.GatewayBot(
+        token=os.environ["DISCORD_TOKEN"], intents=hikari.Intents.ALL
+    )
+    ongaku_client = ongaku.Client(new_bot)
 
     (
-        tanjun.Client.from_gateway_bot(bot)
+        tanjun.Client.from_gateway_bot(new_bot)
         .set_type_dependency(ongaku.Client, ongaku_client)
         .load_modules(
             "cogs.automation",
@@ -48,9 +60,11 @@ def build_bot() -> hikari.GatewayBot:
         )
     )
 
-    return bot
+    return new_bot
+
 
 bot = build_bot()
+
 
 @bot.listen(hikari.StartingEvent)
 async def on_starting(_: hikari.StartingEvent) -> None:
@@ -65,12 +79,16 @@ async def on_starting(_: hikari.StartingEvent) -> None:
         ssl=os.environ.get("LAVALINK_SSL", "False").lower() == "true",
     )
 
+
 @bot.listen(hikari.StartedEvent)
 async def on_started(_: hikari.StartedEvent) -> None:
     """This event will be triggered when the client is ready to use."""
-    print(f"Discord client logged in as {bot.get_me().username}")
+    me = bot.get_me()
+    if me:
+        print(f"Discord client logged in as {me.username}")
     await set_default_profile_picture("default-profile.png")
     bot.create_task(loop_status())
+
 
 async def loop_status() -> None:
     """Loops through few possible statuses."""
@@ -85,6 +103,7 @@ async def loop_status() -> None:
             )
         await asyncio.sleep(15 * 60)
 
+
 @bot.listen()
 async def on_message(event: hikari.GuildMessageCreateEvent) -> None:
     """This will be triggered whenever a user sends a message."""
@@ -94,6 +113,7 @@ async def on_message(event: hikari.GuildMessageCreateEvent) -> None:
     if await check_message(event.message):
         return
 
+
 @bot.listen()
 async def on_message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
     """This will be triggered whenever a user edits a message."""
@@ -102,6 +122,7 @@ async def on_message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
 
     if await check_message(event.message):
         return
+
 
 @bot.listen()
 async def on_member_update(event: hikari.MemberUpdateEvent) -> None:
@@ -122,11 +143,13 @@ async def on_member_update(event: hikari.MemberUpdateEvent) -> None:
         except (hikari.ForbiddenError, hikari.HTTPError) as err:
             logging.exception(err)
 
+
 async def set_profile_picture(path: str) -> None:
     """Change the profile picture of the bot."""
     logging.info("changing profile picture to %s", path)
     with open(path, "rb") as file:
         await bot.rest.edit_my_user(avatar=file.read())
+
 
 async def set_default_profile_picture(path: str) -> None:
     """Changes the profile picture if none is set yet."""

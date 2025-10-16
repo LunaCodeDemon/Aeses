@@ -1,35 +1,28 @@
+"""Global fixtures for Pytest."""
+from unittest import mock
+
 import pytest
-import unittest.mock as mock
-import tanjun
 import hikari
+import tanjun
+
 
 @pytest.fixture
-def mock_ctx():
+def mock_ctx() -> mock.AsyncMock:
     """Provides a comprehensive mock of a Tanjun context."""
-    # We use a real class that inherits from the mock to allow for attributes
-    # to be set on it.
-    class MockContext(mock.AsyncMock):
-        author = mock.Mock(spec=hikari.User)
-        member = mock.AsyncMock(spec=hikari.Member)
-        guild_id = 12345
+    ctx = mock.AsyncMock(spec=tanjun.abc.Context)
+    ctx.author = mock.Mock(spec=hikari.User)
+    ctx.member = mock.AsyncMock(spec=hikari.Member)
+    ctx.guild_id = 12345
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.author.mention = "@TestAuthor"
-            self.author.username = "TestAuthor"
-            self.author.accent_color = 0x00ffff
-            self.author.avatar_url = "http://example.com/author_avatar.png"
+    ctx.author.mention = "@TestAuthor"
+    ctx.author.username = "TestAuthor"
+    ctx.author.accent_color = 0x00FFFF
+    ctx.author.avatar_url = "http://example.com/author_avatar.png"
 
-            # Add voice_state to the member mock
-            self.member.voice_state = mock.Mock(spec=hikari.VoiceState)
-            self.member.voice_state.channel_id = 987654321
+    ctx.member.voice_state = mock.Mock(spec=hikari.VoiceState)
+    ctx.member.voice_state.channel_id = 987654321
 
-            # Make the mock awaitable
-            self.__await__ = lambda: self.__async_return_value__.__await__()
-
-    ctx = MockContext(spec=tanjun.abc.Context)
-
-    # Configure the async methods
+    # Re-adding the essential async methods to the mock
     ctx.defer = mock.AsyncMock()
     ctx.respond = mock.AsyncMock()
     ctx.create_followup = mock.AsyncMock()

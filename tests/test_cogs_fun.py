@@ -1,9 +1,11 @@
+"""Tests for the fun cog."""
+from unittest import mock
+
 import pytest
-import unittest.mock as mock
-import hikari
-import tanjun
+
 from cogs import fun as fun_cog
 from api import pokeapi, safebooru
+
 
 @pytest.mark.anyio
 @mock.patch.object(pokeapi, "get_pokemon")
@@ -15,7 +17,7 @@ async def test_pokemon_command_with_name(mock_get_pokemon, mock_ctx):
         "id": 25,
         "sprites": {"front_default": "http://example.com/pikachu.png"},
         "types": [{"type": {"name": "electric"}}],
-        "stats": [{"stat": {"name": "hp"}, "base_stat": 35}]
+        "stats": [{"stat": {"name": "hp"}, "base_stat": 35}],
     }
     mock_get_pokemon.return_value = mock_pokemon_data
 
@@ -28,22 +30,30 @@ async def test_pokemon_command_with_name(mock_get_pokemon, mock_ctx):
     mock_ctx.create_followup.assert_called_once()
 
     call_args = mock_ctx.create_followup.call_args
-    embed = call_args.kwargs['embed']
+    embed = call_args.kwargs["embed"]
 
     assert embed.title == "Pikachu"
     assert embed.description == "ID: 25"
     assert embed.thumbnail.url == "http://example.com/pikachu.png"
-    assert len(embed.fields) == 2 # types and one stat
+    assert len(embed.fields) == 2  # types and one stat
+
 
 @pytest.mark.anyio
 @mock.patch.object(pokeapi, "get_pokemon", return_value=None)
-async def test_pokemon_command_fails(mock_get_pokemon, mock_ctx):
+async def test_pokemon_command_fails(mock_get_pokemon_api, mock_ctx):
     """Test the pokemon command when the API fails to find a pokemon."""
-    with mock.patch.dict(fun_cog.config, {"dialogs": {"pokemon": {"on_fail": "Failed to find {pokename}"}}}):
+    _ = mock_get_pokemon_api
+    with mock.patch.dict(
+        fun_cog.config,
+        {"dialogs": {"pokemon": {"on_fail": "Failed to find {pokename}"}}},
+    ):
         await fun_cog.pokemon_command(mock_ctx, "notarealpokemon")
 
         mock_ctx.defer.assert_called_once()
-        mock_ctx.create_followup.assert_called_once_with("Failed to find notarealpokemon")
+        mock_ctx.create_followup.assert_called_once_with(
+            "Failed to find notarealpokemon"
+        )
+
 
 @pytest.mark.anyio
 @mock.patch.object(safebooru, "random_post")
@@ -62,7 +72,7 @@ async def test_booru_command(mock_random_post, mock_ctx):
     mock_ctx.create_followup.assert_called_once()
 
     call_args = mock_ctx.create_followup.call_args
-    embed = call_args.kwargs['embed']
+    embed = call_args.kwargs["embed"]
 
     assert embed.title == "Post: 123"
     assert embed.image.url == "http://example.com/image.jpg"

@@ -8,15 +8,16 @@ async def create_welcome_embed(member: hikari.Member, text: str) -> hikari.Embed
     "Creates a welcome embed"
     return hikari.Embed(
         title=f"Welcome {member.username} to {member.get_guild().name}",
-        description=text.format(member=member.mention, guild=member.get_guild().name)
+        description=text.format(member=member.mention, guild=member.get_guild().name),
     )
 
 
-async def create_moderation_embed(user: hikari.User, action: str, reason: str) -> hikari.Embed:
+async def create_moderation_embed(
+    user: hikari.User, action: str, reason: str
+) -> hikari.Embed:
     "Creates an embed for moderation stuff."
     return hikari.Embed(
-        title=f"[{action.upper()}]: {user.username}",
-        description=reason
+        title=f"[{action.upper()}]: {user.username}", description=reason
     )
 
 
