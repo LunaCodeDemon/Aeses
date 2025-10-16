@@ -1,0 +1,2 @@
+[tool.pytest.ini_options]
+anyio_mode = "asyncio"

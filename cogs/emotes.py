@@ -1,125 +1,70 @@
 "A command group containing emote commands."
 from random import choice
-import functools
-import discord
-from discord import app_commands
-from discord.ext import commands
+import hikari
+import tanjun
 from configloader import config, emote_links
-from bot import AesesBot
+
+component = tanjun.Component(name="emotes")
 
 
-def generate_emoji_embed(action: str, myself: str, target: str = None):
-    "Generates an emoji for an emote"
-    embed = discord.Embed()
+def generate_emoji_embed(
+    action: str, myself: hikari.User, target: hikari.User = None
+) -> hikari.Embed:
+    "Generates an emoji embed for an emote action."
+    embed = hikari.Embed(color=0xFF3300)
+
     if target:
-        embed.description = (config['emotes'][action]['with_target'].format(
-            myself=myself, target=target))
-
+        embed.description = config["emotes"][action]["with_target"].format(
+            myself=myself.mention, target=target.mention
+        )
     else:
-        embed.description = (config['emotes'][action]['alone'].format(
-            myself=myself))
+        embed.description = config["emotes"][action]["alone"].format(
+            myself=myself.mention
+        )
 
-    embed.color = discord.Color(0xff3300)
-
-    embed.set_image(url=choice(emote_links[action]))
-
+    embed.set_image(choice(emote_links[action]))
     return embed
 
 
-def emoji_command(func):
-    "Emoji command decoration."
+def create_emote_command(
+    emote_name: str, emote_description: str
+) -> tanjun.SlashCommand:
+    """A factory to create emote slash commands."""
 
-    @functools.wraps(func)
-    async def decorator(self,
-                        inter: discord.Interaction,
-                        target: discord.Member = None):
-        embed = generate_emoji_embed(func.__name__, inter.user.mention,
-                                     target.mention if target else None)
-        await inter.response.send_message(embed=embed)
-        func(self, inter, target)
+    @tanjun.with_user_slash_option(
+        "target", "The user to direct the emote at.", default=None
+    )
+    @tanjun.as_slash_command(emote_name, emote_description)
+    async def emote_command(ctx: tanjun.abc.Context, target: hikari.User | None):
+        embed = generate_emoji_embed(emote_name, ctx.author, target)
+        await ctx.respond(embed=embed)
 
-    return decorator
-
-
-class Emotes(commands.Cog):
-    """
-        A command group containing emote commands.
-        Those will have a descriptive text, for each action.
-        The text will be selected depending if someone was mentioned/selected per argument.
-    """
-    def __init__(self, client: AesesBot) -> None:
-        self.client = client
-
-    # repeating app emote commands that are using the @emoji_command decorator.
-
-    @app_commands.command()
-    @emoji_command
-    def hug(self, inter: discord.Interaction, target: discord.Member = None):
-        "Hug someone."
-
-    @app_commands.command()
-    @emoji_command
-    def cry(self, inter: discord.Interaction, target: discord.Member = None):
-        "For the sad times."
-
-    @app_commands.command()
-    @emoji_command
-    def smile(self, inter: discord.Interaction, target: discord.Member = None):
-        "For happy times."
-
-    @app_commands.command()
-    @emoji_command
-    def smug(self, inter: discord.Interaction, target: discord.Member = None):
-        "surely something weird is happening."
-
-    @app_commands.command()
-    @emoji_command
-    def pat(self, inter: discord.Interaction, target: discord.Member = None):
-        "Nice pats."
-
-    @app_commands.command()
-    @emoji_command
-    def blush(self, inter: discord.Interaction, target: discord.Member = None):
-        "Do a blush"
-
-    @app_commands.command()
-    @emoji_command
-    def boop(self, inter: discord.Interaction, target: discord.Member = None):
-        "Boop someone"
-
-    @app_commands.command()
-    @emoji_command
-    def highfive(self,
-                 inter: discord.Interaction,
-                 target: discord.Member = None):
-        "Highfive someone"
-
-    @app_commands.command()
-    @emoji_command
-    def kiss(self, inter: discord.Interaction, target: discord.Member = None):
-        "Kiss someone"
-
-    @app_commands.command()
-    @emoji_command
-    def nom(self, inter: discord.Interaction, target: discord.Member = None):
-        "Nom someone"
-
-    @app_commands.command()
-    @emoji_command
-    def stare(self, inter: discord.Interaction, target: discord.Member = None):
-        "Stareing..."
-
-    @app_commands.command()
-    @emoji_command
-    def wave(self, inter: discord.Interaction, target: discord.Member = None):
-        "Waving.."
-
-    @app_commands.command()
-    @emoji_command
-    def slap(self, inter: discord.Interaction, target: discord.Member = None):
-        "Slap someone"
+    return emote_command
 
 
-async def setup(client: commands.Bot):
-    "setup function of this cog."
-    await client.add_cog(Emotes(client))
+# List of emotes to be generated
+emote_list = {
+    "hug": "Hug someone.",
+    "cry": "For the sad times.",
+    "smile": "For happy times.",
+    "smug": "Surely something weird is happening.",
+    "pat": "Nice pats.",
+    "blush": "Do a blush.",
+    "boop": "Boop someone.",
+    "highfive": "Highfive someone.",
+    "kiss": "Kiss someone.",
+    "nom": "Nom someone.",
+    "stare": "Staring...",
+    "wave": "Waving...",
+    "slap": "Slap someone.",
+}
+
+# Generate and add each emote command to the component
+for name, description in emote_list.items():
+    component.add_slash_command(create_emote_command(name, description))
+
+
+@tanjun.as_loader
+def load_component(client: tanjun.Client):
+    "Loads the emote component."
+    client.add_component(component.copy())

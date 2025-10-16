@@ -5,12 +5,12 @@ from functools import lru_cache
 from typing import List
 import logging
 import emoji
-import discord
+import hikari
 
 from scripts.sqldata import FilterType, get_filterconfig
 
 
-def get_active_filters(guild_id: int):
+def get_active_filters(guild_id: int) -> List[FilterType]:
     "Get only the active filters"
     filterconfigs = get_filterconfig(guild_id)
 
@@ -23,14 +23,17 @@ def get_active_filters(guild_id: int):
 @lru_cache(maxsize=5)
 def check_for_links(text: str) -> bool:
     "Returns true if a link exists in the string."
+    if not text:
+        return False
     regex = r"(https?:\/\/)?\w+(\.\w+)+(\/+[^\s]+)*\/?"
-    return None is not re.search(regex, text)
+    return re.search(regex, text) is not None
 
 
 @lru_cache(maxsize=10)
 def check_for_emoji(text: str) -> bool:
     "Searches for emoji in string and returns true if emoji is found."
-
+    if not text:
+        return False
     # return true if there is an emoji in the string.
     for symbol in text:
         if emoji.is_emoji(symbol):
@@ -46,44 +49,44 @@ def check_text(text: str, filter_types: List[FilterType]) -> bool:
     return False
 
 
-async def check_message(message: discord.Message) -> bool:
+async def check_message(message: hikari.Message) -> bool:
     "Check message for filtered text and delete it."
-    if not message.guild:
+    if not message.guild_id or not message.content:
         return False
 
     # exctact only the active filters.
-    filter_types = get_active_filters(message.guild.id)
+    filter_types = get_active_filters(message.guild_id)
 
     # if there is none active, going further wouldn't make a difference.
-    if len(filter_types) == 0:
+    if not filter_types:
         return False
 
     # use check_text to check the message.
     if check_text(message.content, filter_types):
         try:
             await message.delete()
-        except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+        except (hikari.ForbiddenError, hikari.NotFoundError, hikari.HTTPError):
             logging.exception("Deletion of filtered message failed.")
         return True
     return False
 
 
-def check_nickname(member: discord.Member) -> bool:
+def check_nickname(member: hikari.Member) -> bool:
     "Check a name for potential threats."
     # exctact only the active filters.
-    filter_types = get_active_filters(member.guild.id)
+    filter_types = get_active_filters(member.guild_id)
 
-    if len(filter_types) == 0:
+    if not filter_types:
         return False
 
-    if member.display_name is not None:
+    if member.display_name:
         # check for an emoji in the name
         if FilterType.EMOJI_NAME in filter_types and check_for_emoji(
-                member.display_name):
+            member.display_name
+        ):
             return True
 
         # check for a link in the name
-        if FilterType.LINK in filter_types and check_for_links(
-                member.display_name):
+        if FilterType.LINK in filter_types and check_for_links(member.display_name):
             return True
     return False

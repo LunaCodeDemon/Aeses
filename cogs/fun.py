@@ -1,70 +1,65 @@
 "Module for fun commands."
 import re
-import discord
-from discord import Embed, app_commands
-from discord.ext import commands
-from api import pokeapi
-from api import safebooru
+import hikari
+import tanjun
+from api import pokeapi, safebooru
 from configloader import config
 
-
-class Fun(commands.Cog):
-    "This cog contains various fun commands"
-
-    def __init__(self, client: commands.Bot):
-        "Initialiser for 'Fun' cog."
-        self.client = client
-
-    @app_commands.command()
-    async def pokemon(self, inter: discord.Interaction, *, name: str = None):
-        """
-            Searches for a pokemon.
-        """
-
-        await inter.response.defer()
-
-        # grab data from pokeapi, depending on what name was given (or not)
-        pokemon_data: any
-        if name:
-            pokemon_data = pokeapi.get_pokemon(name.lower())
-        else:
-            pokemon_data = pokeapi.get_random_pokemon()
-
-        # turn data into embed
-        pokemon_embed = pokeapi.gen_pokemon_embed(pokemon_data)
-
-        # send a on_fail response if the embed wasn't created.
-        if not pokemon_embed:
-            await inter.followup.send(
-                config['dialogs']['pokemon']['on_fail'].format(pokename=name))
-            return
-
-        # send the created embed.
-        await inter.followup.send(embed=pokemon_embed)
-
-    @app_commands.command()
-    async def booru(self, inter: discord.Interaction, *, tags: str):
-        """
-            Get image from safebooru.org
-        """
-
-        await inter.response.defer()
-
-        # pull a random booru post.
-        post = await safebooru.random_post(re.split(r"[\s,+]+", tags))
-
-        # build an embed from the booru data
-        embed = Embed()
-        embed.title = f"Post: {post.post_id}"
-        embed.description = f"You will find the post here: {post.post_url}"
-        embed.set_footer(text="Post has comments" if post.
-                         has_comments else "Post has no comments.")
-        embed.set_image(url=post.file_url)
-
-        # respond with the embed.
-        await inter.followup.send(embed=embed)
+component = tanjun.Component()
 
 
-async def setup(client: commands.Bot):
-    "Setup function for Fun command collection."
-    await client.add_cog(Fun(client))
+@component.with_slash_command
+@tanjun.with_str_slash_option(
+    "name", "The name of the Pokémon to search for.", default=None
+)
+@tanjun.as_slash_command("pokemon", "Searches for a Pokémon.")
+async def pokemon_command(ctx: tanjun.abc.Context, name: str | None):
+    """Searches for a pokemon."""
+    await ctx.defer()
+
+    pokemon_data = (
+        pokeapi.get_random_pokemon() if not name else pokeapi.get_pokemon(name.lower())
+    )
+
+    embed = pokeapi.create_pokemon_embed(pokemon_data)
+
+    if not embed:
+        fail_message = (
+            config["dialogs"]["pokemon"]["on_fail"].format(pokename=name)
+            if name
+            else "Could not find a random Pokémon."
+        )
+        await ctx.create_followup(fail_message)
+        return
+
+    await ctx.create_followup(embed=embed)
+
+
+@component.with_slash_command
+@tanjun.with_str_slash_option("tags", "Tags to search for, separated by spaces.")
+@tanjun.as_slash_command("booru", "Get an image from safebooru.org")
+async def booru_command(ctx: tanjun.abc.Context, tags: str):
+    """Get image from safebooru.org"""
+    await ctx.defer()
+
+    post = await safebooru.random_post(re.split(r"[\s,+]+", tags))
+
+    if not post or not hasattr(post, "file_url"):
+        await ctx.create_followup("Could not find an image with those tags.")
+        return
+
+    embed = hikari.Embed()
+    embed.title = f"Post: {post.post_id}"
+    embed.description = f"You can find the post here: {post.post_url}"
+    embed.set_footer(
+        text="Post has comments" if post.has_comments else "Post has no comments."
+    )
+    embed.set_image(post.file_url)
+
+    await ctx.create_followup(embed=embed)
+
+
+@tanjun.as_loader
+def load_component(client: tanjun.Client):
+    "Loads the component"
+    client.add_component(component.copy())
